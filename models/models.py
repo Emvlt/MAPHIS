@@ -13,7 +13,7 @@ class Down2D(nn.Module):
             out_channels (int): Number of output channels
             filter_size (int): size of the filter of the conv layers, odd integer
     """
-    def __init__(self, in_channels:int, out_channels:int, filter_size:int):        
+    def __init__(self, in_channels:int, out_channels:int, filter_size:int):
         super().__init__()
         self.down = nn.Sequential(
             nn.Conv2d(in_channels,  in_channels, 4, stride=2, padding=1),
@@ -63,7 +63,7 @@ class Up2D(nn.Module):
         return self.l_relu(self.conv2(torch.cat((x_1, skp_connection), 1)))
 
 class Unet2D(nn.Module):
-    """Definition of the 2D unet 
+    """Definition of the 2D unet
     """
     def __init__(self, in_channels:int, out_channels:int, ngf:int):
         super().__init__()
@@ -111,15 +111,15 @@ class Unet2D(nn.Module):
         return y_1
 
 class SegmentationModel(nn.Module):
-    def __init__(self, parametersDict:dict, nc_in:int, nc_out:int):
+    def __init__(self, parameters_dict:dict, nc_in:int, nc_out:int):
         super().__init__()
         ## Assert that all parameters are here:
         for param_name in ['ngf', 'n_gabor_filters', 'support_sizes']:
-            if not parametersDict[param_name]:
+            if not parameters_dict[param_name]:
                 raise KeyError (f'{param_name} is missing')
-        self.ngf           = parametersDict['ngf']
-        self.n_gabor_filters = parametersDict['n_gabor_filters']
-        self.support_sizes  = parametersDict['support_sizes']
+        self.ngf           = parameters_dict['ngf']
+        self.n_gabor_filters = parameters_dict['n_gabor_filters']
+        self.support_sizes  = parameters_dict['support_sizes']
         self.gabor_filters  = nn.ModuleDict({f'{support_size}': nn.Conv2d(nc_in, int(self.n_gabor_filters/len(self.support_sizes)), support_size, stride = 1, padding=int((support_size-1)/2), padding_mode='reflect'  ) for support_size in self.support_sizes})
 
         for param in self.gabor_filters.parameters():
