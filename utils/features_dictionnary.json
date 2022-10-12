@@ -1,0 +1,16 @@
+{
+    "imprint": [
+        "buildings",
+        "rail",
+        "rivers",
+        "farmlands"
+    ],
+    "text": [
+        "number",
+        "word",
+        "letter"
+    ],
+    "vegetation": [
+        "trees"
+    ]
+}
