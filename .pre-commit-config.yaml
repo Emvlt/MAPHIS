@@ -21,3 +21,10 @@ repos:
             "-rn", # Only display messages
             "-sn", # Don't display the score
             ]
+
+    -   id: unittests
+        name: run unit tests
+        entry: python -m unittest
+        language: system
+        pass_filenames: false
+        args: ["discover"]
