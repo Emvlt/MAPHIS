@@ -5,13 +5,12 @@ import unittest
 # All constants shared accross models are defined here
 BACKUPFOLDERPATH  = pathlib.Path(r'D:\MAPHIS')
 RDSFFOLDERPATH    = pathlib.Path(r'\\rdsfcifs.acrc.bris.ac.uk\MAPHIS_historical_maps')
-DATASETFOLDERPATH = BACKUPFOLDERPATH.joinpath('datasets')
+DATASETFOLDERPATH = RDSFFOLDERPATH.joinpath('datasets')
 IMAGESFOLDERPATH  = DATASETFOLDERPATH.joinpath('images')
 CLASSIFIEDPATH    = DATASETFOLDERPATH.joinpath('classified')
 CITIESFOLDERPATH  = DATASETFOLDERPATH.joinpath('cities')
 RAWPATH           = DATASETFOLDERPATH.joinpath('raw')
 PROCESSEDPATH     = DATASETFOLDERPATH.joinpath('processed')
-TRAININGFOLDERPATH= DATASETFOLDERPATH.joinpath('training')
 GRAPHPATH         = DATASETFOLDERPATH.joinpath('graphs')
 MODELSPATH        = DATASETFOLDERPATH.joinpath('models')
 PROJECTPATHS = [
@@ -22,7 +21,6 @@ PROJECTPATHS = [
     CITIESFOLDERPATH,
     RAWPATH,
     PROCESSEDPATH,
-    TRAININGFOLDERPATH,
     GRAPHPATH,
     MODELSPATH
     ]
@@ -67,6 +65,9 @@ HIGHLEVELFEATURES = ['imprint', 'text','vegetation']
 
 HIGHTOLOWDETECTION = {
     'imprint':['buildings'],
+    'embankments':['embankments'],
+    'rail':['rail'],
+    'rivers':['rivers'],
     'text':['labels', 'stamps_small_font', 'stamps_large_font'],
     'vegetation':['trees']
     }
@@ -189,10 +190,9 @@ CITYKEY = {
     }
 
 CITYPATH = {
-    'Barrow-in_Furness' : CITIESFOLDERPATH.joinpath('Barrow-in_Furness/500/tp_2'),
-    'Luton' : CITIESFOLDERPATH.joinpath('Luton/500/tp_1'),
-    'Bristol' : CITIESFOLDERPATH.joinpath('Bristol/500/tp_1'),
-    'Demo' : CITIESFOLDERPATH.joinpath('Demo/500/tp_1')}
+    'Demo' : CITIESFOLDERPATH.joinpath('Demo'),
+    'Luton' : CITIESFOLDERPATH.joinpath('Luton'),
+    }
 
 
 CARDINALTOCARTESIAN = {

@@ -8,7 +8,7 @@ import numpy as np
 from tqdm import tqdm
 from imutils import grab_contours
 
-import constants
+import utils.constants as constants
 
 def normalise(array:np.ndarray):
     return (array-array.min())/(array.max()-array.min())
@@ -29,7 +29,7 @@ def just_open(path, mode:str) -> np.ndarray:
 
     if mode == 'grayscale':
         return cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-        
+
     return cv2.imread(path, cv2.IMREAD_COLOR)
 
 def open_and_normalise(path, mode:str) -> np.ndarray:
@@ -85,7 +85,7 @@ def compute_tile_histogram(file_path:pathlib.Path, feature_name:str, areas:list,
         contours = extract_contours(mat)
         for contour in tqdm(contours):
             area, false_positive = is_false_positive(contour)
-            if not false_positive:                
+            if not false_positive:
                 (_,_, width, height) = cv2.boundingRect(contour)
                 areas.append(area)
                 heights.append(height)
@@ -105,18 +105,18 @@ def compute_shape_histogram(test_folders_paths:List[pathlib.Path], feature_name:
         if feature_name in constants.HIGHLEVELFEATURES:
             for sub_feature_name in constants.HIGHLEVELFEATURES[feature_name]:
                 file_path = constants.RAWPATH.joinpath(f'{test_folder_path.parent.stem}/{test_folder_path.stem}/{sub_feature_name}{constants.FILEEXTENSION}')
-                if file_path.exists():                    
+                if file_path.exists():
                     areas_list, heights_list, widths_list = compute_tile_histogram(file_path, sub_feature_name, areas_list, heights_list, widths_list)
                 else:
                     print(f'No {sub_feature_name} for tile {file_path.stem}, passing...')
 
         else:
             file_path = constants.RAWPATH.joinpath(f'{test_folder_path.parent.stem}/{test_folder_path.stem}/{feature_name}{constants.FILEEXTENSION}')
-            if file_path.exists():                    
+            if file_path.exists():
                 areas_list, heights_list, widths_list = compute_tile_histogram(file_path, feature_name, areas_list, heights_list, widths_list)
             else:
                 print(f'No {feature_name} for tile {file_path.stem}, passing...')
-    
+
     if to_save:
         area_histo, area_bins = histo(areas_list)
         histogram_dict['A_distribution']['histogram'] = area_histo.tolist()
@@ -138,4 +138,3 @@ def compute_shape_histogram(test_folders_paths:List[pathlib.Path], feature_name:
         histogram_dict['W_distribution']['histogram'] = width_histo
         histogram_dict['W_distribution']['bins'] = width_bins
     return histogram_dict
-                

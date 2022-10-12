@@ -13,10 +13,8 @@ class TestConstants(unittest.TestCase):
 
 class TestPaths(unittest.TestCase):
     def test_is_path_a_folder(self):
-        for city_path in constants.CITYPATH.values():
-            self.assertTrue(city_path.is_dir())
-        for city_path in constants.PROJECTPATHS:
-            self.assertTrue(city_path.is_dir())
+        for project_path in constants.PROJECTPATHS:
+            self.assertTrue(project_path.is_dir())
 
 if __name__ == '__main__':
     unittest.main()
