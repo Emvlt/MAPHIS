@@ -16,5 +16,6 @@ class TestPaths(unittest.TestCase):
         for project_path in constants.PROJECTPATHS:
             self.assertTrue(project_path.is_dir())
 
+
 if __name__ == '__main__':
     unittest.main()
