@@ -3,9 +3,9 @@ from typing import Dict
 
 @dataclass
 class Node():
-    def __init__(self, x, y, label=None, key=None) -> None:
-        self.x:int = x
-        self.y:int = y
+    def __init__(self, pos_x, pos_y, label=None, key=None) -> None:
+        self.pos_x:int = pos_x
+        self.pos_y:int = pos_y
         self.label:str = label
         self.key:str = key
 
@@ -15,26 +15,26 @@ class Node():
         return False
 
     def to_string(self, inv_map:Dict) -> str:
-        return f'x : {self.x}, y : {self.y}, class : { inv_map[int(self.label)]}, key : {self.key}'
-        
+        return f'pos_x : {self.pos_x}, pos_y : {self.pos_y}, class : { inv_map[int(self.label)]}, key : {self.key}'
+
     @property
     def serialise_node(self) -> Dict:
         node_dict = {
-            'x':self.x,
-            'y':self.y,
+            'pos_x':self.pos_x,
+            'pos_y':self.pos_y,
             'label':self.label,
             'key':self.key
         }
         return node_dict
 
     def scale_coordinates(self, ratio:float):
-        return Node(int(ratio*self.x), int(ratio*self.y), label=self.label, key=self.key)
+        return Node(int(ratio*self.pos_x), int(ratio*self.pos_y), label=self.label, key=self.key)
 
     def shift(self, width_shift:int, height_shift:int) -> object:
-        return Node(self.x+width_shift, self.y+height_shift, label=self.label, key=self.key)
+        return Node(self.pos_x+width_shift, self.pos_y+height_shift, label=self.label, key=self.key)
 
     def change_key(self, new_key:str) -> object:
-        return Node(self.x, self.y, label=self.label, key=new_key)
+        return Node(self.pos_x, self.pos_y, label=self.label, key=new_key)
 
     def is_in(self, list_of_nodes:list) -> bool:
         for node in list_of_nodes:
@@ -43,64 +43,55 @@ class Node():
         return False
 
     def intersect(self, other_node:object, background):
-        if abs(other_node.y - self.y) < abs(other_node.x - self.x):
-            if self.x > other_node.x:
-                return plotLineLow(other_node.x, other_node.y, self.x, self.y, background)
-            else:
-                return plotLineLow(self.x, self.y, other_node.x, other_node.y, background)
+        if abs(other_node.pos_y - self.pos_y) < abs(other_node.pos_x - self.pos_x):
+            if self.pos_x > other_node.pos_x:
+                return plot_line_low(other_node.pos_x, other_node.pos_y, self.pos_x, self.pos_y, background)
+            return plot_line_low(self.pos_x, self.pos_y, other_node.pos_x, other_node.pos_y, background)
 
-        else:
-            if self.y > other_node.y:
-                return plotLineHigh(other_node.x, other_node.y, self.x, self.y, background)
-            else:
-                return plotLineHigh(self.x, self.y, other_node.x, other_node.y, background)
 
-def plotLineLow(x0:int, y0:int, x1:int, y1:int, background):
+        if self.pos_y > other_node.pos_y:
+            return plot_line_high(other_node.pos_x, other_node.pos_y, self.pos_x, self.pos_y, background)
+        return plot_line_high(self.pos_x, self.pos_y, other_node.pos_x, other_node.pos_y, background)
+
+def plot_line_low(pos_x0:int, pos_y0:int, pos_x1:int, pos_y1:int, background):
     cost = 0
-    dx = x1 - x0
-    dy = y1 - y0
-    yi = 1
-    if dy < 0:
-        yi = -1
-        dy = -dy
-    D = (2 * dy) - dx
-    y = y0
-    for x in range(x0,x1):
-        if background[x,y]!=0 and 20<=cost:
+    diff_x = pos_x1 - pos_x0
+    diff_y = pos_y1 - pos_y0
+    pos_yi = 1
+    if diff_y < 0:
+        pos_yi = -1
+        diff_y = -diff_y
+    delta = (2 * diff_y) - diff_x
+    pos_y = pos_y0
+    for pos_x in range(pos_x0,pos_x1):
+        if background[pos_x,pos_y]!=0 and 20<=cost:
             return True
-        elif background[x,y]!=0 and cost<=20:
-            cost+=1
-            
-        if D > 0:
-            y = y + yi
-            D = D + (2 * (dy - dx))
+        cost+=1
+
+        if delta > 0:
+            pos_y = pos_y + pos_yi
+            delta = delta + (2 * (diff_y - diff_x))
         else:
-            D = D + 2*dy
+            delta = delta + 2*diff_y
     return False
 
-def plotLineHigh(x0:int, y0:int, x1:int, y1:int, background):
+def plot_line_high(pos_x0:int, pos_y0:int, pos_x1:int, pos_y1:int, background):
     cost = 0
-    dx = x1 - x0
-    dy = y1 - y0
-    xi = 1
-    if dx < 0:
-        xi = -1
-        dx = -dx
-    D = (2 * dx) - dy
-    x = x0
-    for y in range(y0,y1):
-        if background[x,y]!=0 and 20<=cost:
+    diff_x = pos_x1 - pos_x0
+    diff_y = pos_y1 - pos_y0
+    pos_xi = 1
+    if diff_x < 0:
+        pos_xi = -1
+        diff_x = -diff_x
+    delta = (2 * diff_x) - diff_y
+    pos_x = pos_x0
+    for pos_y in range(pos_y0,pos_y1):
+        if background[pos_x,pos_y]!=0 and 20<=cost:
             return True
-        elif background[x,y]!=0 and cost<=20:
-            cost+=1
-        if D > 0:
-            x = x + xi
-            D = D + (2 * (dx - dy))
+        cost+=1
+        if delta > 0:
+            pos_x = pos_x + pos_xi
+            delta = delta + (2 * (diff_x - diff_y))
         else:
-            D = D + 2*dx
+            delta = delta + 2*diff_x
     return False
-
-
-
-
-

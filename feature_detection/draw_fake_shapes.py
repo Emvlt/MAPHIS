@@ -10,7 +10,7 @@ import utils.constants as constants
 import utils.morphological_tools as morph_tools
 from PIL import Image
 import math
-import json 
+import json
 import cv2
 
 statistics_dict = json.load(open(constants.IMAGESFOLDERPATH.joinpath('statistics.json')))
@@ -30,7 +30,7 @@ def generate_ellipsoid(maxLength:int) -> Tuple[List,List]:
     centerY = random.randint(radiusY, maxLength-radiusY )
     rr, cc   = ellipse_perimeter(centerX,centerY, radiusX, radiusY)
     return rr, cc
-    
+
 def generate_circle(maxLength:int) -> Tuple[list,list]:
     """Generates the coordinates of a circle in a square
 
@@ -56,9 +56,9 @@ def generate_rectangle(maxLength:int) -> Tuple[list,list]:
         Tuple[list,list]: x and y coordinates of the rectangle
     """
     extent_x = random.randint(int(maxLength/4), int(maxLength/3))
-    extent_y = random.randint(int(maxLength/4), int(maxLength/3))      
+    extent_y = random.randint(int(maxLength/4), int(maxLength/3))
     start_x = random.randint(extent_x, maxLength-extent_x)
-    start_y = random.randint(extent_y, maxLength-extent_y)        
+    start_y = random.randint(extent_y, maxLength-extent_y)
     start = (start_x, start_y)
     extent = (extent_x, extent_y)
     rr, cc = rectangle_perimeter(start, extent=extent)
@@ -83,10 +83,10 @@ def center_crop(mat, extent) -> np.uint8:
     return mat[center_x-int(extent/2): center_x+int(extent/2),center_y-int(extent/2): center_y+int(extent/2)]
 
 def generateStripePattern(sizeImg:int) -> np.uint8:
-    """generates a strippe pattern 
+    """generates a strippe pattern
 
     Args:
-        sizeImg (int): generates a strippe pattern 
+        sizeImg (int): generates a strippe pattern
 
     Returns:
         np.uint8: image to crop
@@ -97,7 +97,7 @@ def generateStripePattern(sizeImg:int) -> np.uint8:
         for j in range(i, enclosingSquareLength, constants.DRAWING['stripe_spacing']):
             mask[j] = 0
 
-    rotationAngle = random.randint(0,90) 
+    rotationAngle = random.randint(0,90)
     rotatedImage = ndimage.rotate(mask, rotationAngle, reshape=True,order=1)
     toCrop = np.shape(rotatedImage)[0]-sizeImg
     rotated_mask = morph_tools.normalise(crop(rotatedImage,int(toCrop/2), sizeImg))
@@ -145,7 +145,7 @@ def is_cell_available(grid:np.uint8, indexRow:int, indexCol:int) -> bool:
     """Checks if the cell at position (indexRow, indexCol) on the grid is available
 
     Args:
-        grid (np.uint8): the grid 
+        grid (np.uint8): the grid
         indexRow (int): the row index on the surrogate grid
         indexCol (int): the column index on the surrogate grid
 
@@ -158,7 +158,7 @@ def try_square_size(grid:np.uint8, indexRow:int, indexCol:int, gridSize:int) ->i
     """When randomly partitionning a square into smaller squares, use a surrogate grid (faster) to assess if there is space left to draw in the actual image
 
     Args:
-        grid (np.uint8): the grid 
+        grid (np.uint8): the grid
         indexRow (int): the row index on the surrogate grid
         indexCol (int): the column index on the surrogate grid
         gridSize (int): the grid size
@@ -169,9 +169,9 @@ def try_square_size(grid:np.uint8, indexRow:int, indexCol:int, gridSize:int) ->i
     # local copy of the small sizes to consider
     sizes = [1,2,4,8]
     probabilities = list(statistics_dict['shirt_to_probability'].values()).copy()
-    
+
     while True:
-        
+
         potentialSize = random.choices(sizes, probabilities )[0]
         # assert we are not out of the grid
         if indexRow + potentialSize <= gridSize and indexCol + potentialSize <= gridSize:
@@ -179,9 +179,9 @@ def try_square_size(grid:np.uint8, indexRow:int, indexCol:int, gridSize:int) ->i
             if np.count_nonzero(grid[indexRow:indexRow+potentialSize, indexCol:indexCol+potentialSize])==0:
                 return potentialSize
         else:
-            probabilities.pop(sizes.index(potentialSize)) 
+            probabilities.pop(sizes.index(potentialSize))
             sizes.remove(potentialSize)
-            
+
 
 def generateBlockOfFlats(sizeImg:int) -> Tuple[np.uint8, np.uint8, np.uint8]:
     """Generates a block of houses to replicate semi-detached houses
@@ -209,7 +209,7 @@ def generateBlockOfFlats(sizeImg:int) -> Tuple[np.uint8, np.uint8, np.uint8]:
         if enclosingSquareLength <= start_index + length:
             extent = (enclosingSquareLength-start_index, height)
             reached = True
-        else:            
+        else:
             extent = (length, height)
         rr, cc = rectangle(start, extent=extent)
         mask[rr,cc] = 1
@@ -224,7 +224,7 @@ def generateBlockOfFlats(sizeImg:int) -> Tuple[np.uint8, np.uint8, np.uint8]:
     #return crop(rotatedImage, cropMargin, sizeImg), crop(rotatedMask, cropMargin, sizeImg), crop(rotatedBand, cropMargin, sizeImg)
     return crop(rotatedImage, cropMargin, sizeImg), crop(rotatedMask, cropMargin, sizeImg)
 
-def generateFeature(thumbnailSize:int) -> Tuple[np.uint8, np.uint8, str]:  
+def generateFeature(thumbnailSize:int) -> Tuple[np.uint8, np.uint8, str]:
     size_key = constants.DRAWING['size_to_shirt'][thumbnailSize]
     feature_name = random.choices(statistics_dict['shirt_to_feature_probability'][size_key]['features'], statistics_dict['shirt_to_feature_probability'][size_key]['probabilities'])[0]
     high_level_feature = constants.LOWTOHIGHTDISPLAY[feature_name]
@@ -295,9 +295,9 @@ def generateFeatureOrStripe(thumbnailSize:int, boundRowLow:int, boundRowHigh:int
             pattern, mask = generateThickShape(int(thumbnailSize/math.sqrt(2)))
 
     image, mask = fillThumbnail(thumbnailSize, pattern, mask, boundRowLow, boundRowHigh,boundColLow, boundColHigh, image, full_mask[:,:,1+constants.HIGHLEVELFEATURES.index(choice)])
-    
+
     full_mask[:,:,1+constants.HIGHLEVELFEATURES.index(choice)] = mask
-    
+
     return image, full_mask
 
 def addLines(image:np.uint8, sizeImg=512) ->  np.uint8:
@@ -329,7 +329,7 @@ def generateFeaturesAndMask(sizeImg=512, minSize = 64) -> Tuple[np.uint8, Dict] 
     """Generates one image and the associated masks
 
     Args:
-        patternsDict (Dict):  A dictionnary containing all the features of all the sizes considered (not the shapes as objects but the meta information) 
+        patternsDict (Dict):  A dictionnary containing all the features of all the sizes considered (not the shapes as objects but the meta information)
         sizeImg (int, optional): Size of the image. Defaults to 512. don't mess around with that
         minSize (int, optional): Minimum shape size to consider. Defaults to 32.
 
@@ -357,7 +357,7 @@ def make_batch(batchSize:int, n_input_channels:int) ->Tuple[np.uint8, Dict]:
     batch_mask = np.zeros((batchSize, 1+len(constants.HIGHLEVELFEATURES), 512, 512), np.uint8)
     # Populate the image batch and the mask batches with the appropriate data
     for batch_index in range(batchSize):
-        
+
         background = np.zeros((512, 512), np.uint8)
         image, masks = generateFeaturesAndMask()
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
@@ -365,10 +365,10 @@ def make_batch(batchSize:int, n_input_channels:int) ->Tuple[np.uint8, Dict]:
             batch[batch_index,0] = image
         elif n_input_channels == 3:
             batch[batch_index]   = np.concatenate((np.expand_dims(morph_tools.erosion(image),0), np.expand_dims(image,0), np.expand_dims(morph_tools.dilation(image),0)), axis = 0)
-        
+
         _, binarised_masks  = cv2.threshold(masks, 10 ,1, cv2.THRESH_BINARY)
 
-        for feature_index in range(len(constants.HIGHLEVELFEATURES)):     
+        for feature_index in range(len(constants.HIGHLEVELFEATURES)):
             batch_mask[batch_index, 1+feature_index] = binarised_masks[:,:,1+feature_index]
             background = cv2.bitwise_or(background,  binarised_masks[:,:,1+feature_index])
 

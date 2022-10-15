@@ -1,7 +1,0 @@
-{
-    "segmentation" : {
-        "n_gabor_filters": 64,
-        "ngf": 4,
-        "support_sizes": [5, 7, 9, 11]
-    }
-}

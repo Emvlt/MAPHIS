@@ -30,14 +30,14 @@ def trim_and_save(mat:np.ndarray, mask:np.ndarray, key:str, indices_dict:Dict, s
         indices_dict[key] +=1
     return indices_dict
 
-def tile_and_save(mat,H, W, key, save_path, indices_dict, zer):
+def tile_and_save(mat, height, width, key, save_path, indices_dict, zer):
     if key != 'xl':
         cv2.imwrite(str(save_path.joinpath(f'{key}/{indices_dict[key]}{constants.FILEEXTENSION}')), mat)
         cv2.imwrite(str(save_path.joinpath(f'{key}/{indices_dict[key]}_mask{constants.FILEEXTENSION}')), zer)
         indices_dict[key] +=1
     else:
-        q_w, r_w = W//(362), W%362
-        q_h, r_h = H//(362), H%362
+        q_w, r_w = width//(362), width%362
+        q_h, r_h = height//(362), height%362
         if q_h==0 or q_w==0:
             if q_h == 0:
                 for i in range(q_w+1):
@@ -86,11 +86,11 @@ def process_contour(contour:List, background:np.ndarray, save_path:pathlib.Path,
 def extract_features_tile(feature_name:str, city_name:str, tile_path:pathlib.Path, progress_dict:Dict):
 
     if feature_name in progress_dict[city_name] and progress_dict[city_name][feature_name][tile_path.stem] == 'True':
-        print(f"The feature {feature_name} of the tile {tile_path.stem} has already been extracted, /!\ extracting it again will duplicate extracted elements /!\ ")
-        x = ''
-        while x not in ['Y','N']:
-            x = input("Would you like to proceed anyway? (Y/N):")
-            if x == 'N':
+        print(f"The feature {feature_name} of the tile {tile_path.stem} has already been extracted, ! extracting it again will duplicate extracted elements ! ")
+        answer = ''
+        while answer not in ['Y','N']:
+            answer = input("Would you like to proceed anyway? (Y/N):")
+            if answer == 'N':
                 print(f'Aborting feature extraction for tile {tile_path.stem}')
                 return
 
@@ -112,7 +112,8 @@ def extract_features_tile(feature_name:str, city_name:str, tile_path:pathlib.Pat
 
 def extract_raw_features_city(feature_name:str, city_name:str):
     city_path = constants.RAWPATH.joinpath(f'{city_name}').glob('*')
-    progress_dict = json.load(open(constants.IMAGESFOLDERPATH.joinpath('progress.json')))
+    with open(constants.IMAGESFOLDERPATH.joinpath('progress.json'), encoding="utf-8") as progress_dict_path:
+        progress_dict = json.load(progress_dict_path)
     for tile_path in city_path:
         if tile_path.is_dir():
             if tile_path.joinpath(f'{feature_name}.jpg').is_file():

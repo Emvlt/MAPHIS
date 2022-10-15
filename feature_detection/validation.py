@@ -21,7 +21,6 @@ import utils.constants as constants
 import models.models as models
 from dataset_utils import get_testfile_paths, Thumbnails, re_tile
 from loading_utils import load_model
-from metrics_utils import write_test_metrics, report_to_tune
 
 import matplotlib.pyplot as plt
 import argparse

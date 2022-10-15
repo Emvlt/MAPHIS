@@ -1,8 +1,8 @@
 import sys
 sys.path.append('..')
-import utils.constants as constants
+from utils import constants
 import json
-import models.models as models
+from models_folder import models
 import torch
 
 def load_model(operation:str, ncIn:int, parameters = None, training_type=str):
@@ -17,15 +17,15 @@ def load_model(operation:str, ncIn:int, parameters = None, training_type=str):
 
     print(f"------ Instanciating {operation.capitalize()} Model ------")
     if operation == 'segmentation':
-        model = models.segmentation_model(parameters, ncIn, 1+len(constants.HIGHLEVELFEATURES))
+        model = models.SegmentationModel(parameters, ncIn, 1+len(constants.HIGHLEVELFEATURES))
     else:
         print(f'{operation.capitalize()} not implemented')
         return None
-    
+
     saved_model_path = constants.MODELSPATH.joinpath(f'saves/{operation}_{training_type}_state_dict.pth')
     print(f"------ Attempting to load saved Model at {saved_model_path} ------")
     if saved_model_path.is_file():
-        print(f"Loading {operation.capitalize()} Saved Model")    
+        print(f"Loading {operation.capitalize()} Saved Model")
         model.load_state_dict(torch.load(str(saved_model_path)))
     else:
         print('No saved model, passing')

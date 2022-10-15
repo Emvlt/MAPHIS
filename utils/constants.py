@@ -13,6 +13,7 @@ RAWPATH           = DATASETFOLDERPATH.joinpath('raw')
 PROCESSEDPATH     = DATASETFOLDERPATH.joinpath('processed')
 GRAPHPATH         = DATASETFOLDERPATH.joinpath('graphs')
 MODELSPATH        = DATASETFOLDERPATH.joinpath('models')
+TILESDATAPATH     = DATASETFOLDERPATH.joinpath('tiles_data')
 PROJECTPATHS = [
     BACKUPFOLDERPATH,
     RDSFFOLDERPATH,
