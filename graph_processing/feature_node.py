@@ -9,7 +9,7 @@ class Node():
         self.label:str = label
         self.key:str = key
 
-    def is_equal_to(self, other_node: object) -> bool:
+    def is_equal_to(self, other_node) -> bool:
         if self.key == other_node.key:
             return True
         return False

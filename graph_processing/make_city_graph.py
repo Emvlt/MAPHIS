@@ -1,14 +1,15 @@
 import argparse
 import sys
 sys.path.append('..')
-import utils.constants as constants
+from utils import constants
 import city_graph
 
 
-def construct_graph(city_name:str, save_path=None):
+def construct_graph(city_name:str):
     graph = city_graph.Graph(city_name, ratio=1)
     graph.populate_graph()
-    graph.extract_features_city_wide()
+    graph.make_neighbours()
+    #graph.extract_features_city_wide()
     #graph.make_tiles()
     #graph.display_element(pathlib.Path(f'images/{city_name}.jpg'))
     #graph.populate_graph()

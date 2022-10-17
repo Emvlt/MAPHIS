@@ -59,12 +59,20 @@ def extract_contours(mat:np.ndarray) -> List:
 def empty_tile(val=None):
     return np.zeros( (constants.TILEHEIGHT, constants.TILEWIDTH), np.uint8) if val is None else np.ones( (constants.TILEHEIGHT, constants.TILEWIDTH), np.uint8)*val
 
+def load_background(city_name, tile_name):
+    target = empty_tile()
+    for background_element in constants.BACKGROUNDKWDS:
+        path = constants.RAWPATH / f'{city_name}/{tile_name}/{background_element}{constants.FILEEXTENSION}'
+        if path.is_file():
+            target = cv2.bitwise_or(target, np.uint8(open_and_binarise(str(path), 'grayscale', background_element)))
+    return target
+
 def load_high_level_feature(city_name, tile_name, high_level_feature_name):
     target = empty_tile()
     for feature_name in constants.HIGHLEVELFEATURES[high_level_feature_name]:
         path = constants.RAWPATH / f'{city_name}/{tile_name}/{feature_name}{constants.FILEEXTENSION}'
         if path.is_file():
-            target = cv2.bitwise_or(target, np.uint8(open_and_binarise(str(path), feature_name, 1)))
+            target = cv2.bitwise_or(target, np.uint8(open_and_binarise(str(path), 'grayscale', feature_name)))
     return target
 
 def is_false_positive(contour:List) -> Tuple[float, bool]:
