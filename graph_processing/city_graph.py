@@ -193,11 +193,22 @@ class Graph():
                     w_offset = self.tile_w * tile_w_index
                     if (tile_w_index,tile_h_index) in self.ordered_nodes:
                         feature_dict, global_index, tile_dict = self.ordered_nodes[(tile_w_index,tile_h_index)].extract_feature(feature_name, feature_dict, global_index, w_offset, h_offset)
-                        #request = f'http://13.40.112.22/v1alpha1/features/{self.city_name}/{self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name}_{feature_name}/insert/replace'
-                        #res = requests.post(url=request, json = tile_dict)
-            #request = f'http://13.40.112.22/v1alpha1/features/{self.city_name}/{feature_name}/insert/replace'
-            #res = requests.post(url=request, json = feature_dict)
-            #print(f'The post request {request} has returned the status {res}')
+                        ### Local save tile dict
+                        constants.SHAPESDATAPATH.joinpath(f'{self.city_name}/{self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name}').mkdir(exist_ok=True,parents=True)
+                        with open(constants.SHAPESDATAPATH.joinpath(f'{self.city_name}/{self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name}/{feature_name}.json'), 'w') as f:
+                            json.dump(tile_dict, f)
+                        ### Online save tile dict
+                        request = f'http://13.40.112.22/v1alpha1/features/{self.city_name}/{self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name}_{feature_name}/insert/replace'
+                        res = requests.post(url=request, json = tile_dict)
+                        print(f'The post request {request} has returned the status {res}')
+            ### Online save city dict
+            request = f'http://13.40.112.22/v1alpha1/features/{self.city_name}/{feature_name}/insert/replace'
+            res = requests.post(url=request, json = feature_dict)
+            print(f'The post request {request} has returned the status {res}')
+            ### Local save city dict
+            with open(constants.SHAPESDATAPATH.joinpath(f'{self.city_name}/{feature_name}.json'), 'w') as f:
+                json.dump(feature_dict, f)
+            ### Local save city dict as js file
             with open(save_folder_path.joinpath(f'{feature_name}.js'), 'w') as out_file:
                 out_file.write(f'var tile_data_{feature_name} = {json.dumps(feature_dict)};' )
 

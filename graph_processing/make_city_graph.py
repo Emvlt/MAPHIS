@@ -27,6 +27,6 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--city_key', required=False, type=str, default = '71')
+    parser.add_argument('--city_key', required=False, type=str, default = '36')
     args = parser.parse_args()
     main(args)
