@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 import sys
+import time
 from typing import List, Dict
 sys.path.append('..')
 
@@ -162,6 +163,7 @@ class TileNode():
 
     ### CORE ###
     def extract_feature(self, feature_name, feature_dict, global_index, w_offset, h_offset, epsilon=0.0010):
+        t0 = time.time()
         print(f'Processing {feature_name} for tile {self.tile_name}')
         print('\t Loading Tile...')
         mat = morph_tools.just_open( constants.PROCESSEDPATH.joinpath(f'{self.city_name}/{self.tile_name}/{feature_name}{constants.FILEEXTENSION}'), 'grayscale')
@@ -201,7 +203,7 @@ class TileNode():
                     })
                 global_index += 1
                 local_index  += 1
-
+        print(f'Elapsed Time Contour Extraction : {time.time()-t0}')
         return feature_dict, global_index, tile_dict
 
     def get_all_background(self):

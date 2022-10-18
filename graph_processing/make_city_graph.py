@@ -8,8 +8,8 @@ import city_graph
 def construct_graph(city_name:str):
     graph = city_graph.Graph(city_name, ratio=1)
     graph.populate_graph()
-    graph.make_neighbours()
-    #graph.extract_features_city_wide()
+    #graph.make_neighbours()
+    graph.extract_features_city_wide()
     #graph.make_tiles()
     #graph.display_element(pathlib.Path(f'images/{city_name}.jpg'))
     #graph.populate_graph()

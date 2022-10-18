@@ -2,6 +2,7 @@ from typing import Dict
 from collections import Counter
 import math
 from operator import add
+import time
 
 import json
 import numpy as np
@@ -106,24 +107,36 @@ class Graph():
                     w_offset = self.tile_w * tile_w_index
                     if (tile_w_index,tile_h_index) in self.ordered_nodes:
                         feature_dict, global_index, tile_dict = self.ordered_nodes[(tile_w_index,tile_h_index)].extract_feature(feature_name, feature_dict, global_index, w_offset, h_offset)
-                        ### Local save tile dict
+                        '''### Local save tile dict
+                        print(f'Saving Tile Data Locally...')
+                        t0 = time.time()
                         constants.SHAPESDATAPATH.joinpath(f'{self.city_name}/{self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name}').mkdir(exist_ok=True,parents=True)
                         with open(constants.SHAPESDATAPATH.joinpath(f'{self.city_name}/{self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name}/{feature_name}.json'), 'w') as f:
                             json.dump(tile_dict, f)
+                        print(f'Elapsed Time Saving Tile Data Locally: {time.time()-t0}')'''
                         ### Online save tile dict
+                        print('Uploading tile json...')
+                        t0 = time.time()
                         request = f'http://13.40.112.22/v1alpha1/features/{self.city_name}/{self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name}_{feature_name}/insert/replace'
                         res = requests.post(url=request, json = tile_dict)
-                        print(f'The post request {request} has returned the status {res}')
+                        print(f'The post request {request} has returned the status {res.status_code}')
+                        print(f'Elapsed Time Uploading Tile Data: {time.time()-t0}')
             ### Online save city dict
+            print('Uploading city json...')
+            t0 = time.time()
             request = f'http://13.40.112.22/v1alpha1/features/{self.city_name}/{feature_name}/insert/replace'
             res = requests.post(url=request, json = feature_dict)
-            print(f'The post request {request} has returned the status {res}')
-            ### Local save city dict
+            print(f'The post request {request} has returned the status {res.status_code}')
+            print(f'Elapsed Time Uploading City Data: {time.time()-t0}')
+            '''### Local save city dict
+            print(f'Saving City Data Locally...')
+            t0 = time.time()
             with open(constants.SHAPESDATAPATH.joinpath(f'{self.city_name}/{feature_name}.json'), 'w') as f:
                 json.dump(feature_dict, f)
             ### Local save city dict as js file
             with open(save_folder_path.joinpath(f'{feature_name}.js'), 'w') as out_file:
                 out_file.write(f'var tile_data_{feature_name} = {json.dumps(feature_dict)};' )
+            print(f'Elapsed Time Saving City Data Locally: {time.time()-t0}')'''
 
     def make_tiles(self):
         ### SUSPECTED BRAK POINT: VERY LARGE CITIES
@@ -166,6 +179,7 @@ class Graph():
                 for tile_w_index in range(self.n_tile_lattitude):
                     mesh_w_index_offset = tile_w_index * thumbnails_per_tile_width
                     # We begin by creating a (thumbnails_per_tile_width, thumbnails_per_tile_height) empty matrix
+                    t0= time.time()
                     current_mesh = np.ones((mesh_width, mesh_height), np.uint8)*255
 
                     # We now specify the part of the tile that will be queried
@@ -222,9 +236,11 @@ class Graph():
                             end_mesh_h = (th_index_h+1)*input_tile_size
                             thumbnail = current_mesh[start_mesh_w:end_mesh_w, start_mesh_h:end_mesh_h]
                             thumbnail = np.transpose(cv2.resize(thumbnail, dsize=(256,256), interpolation=cv2.INTER_CUBIC))
-                            cv2.imwrite(str(save_name), thumbnail)
+                            #cv2.imwrite(str(save_name), thumbnail)
                             request = f'http://13.40.112.22/v1alpha1/upload/images/{self.city_name}/{self.max_zoom_level-zoom_depth-8}/{th_index_w + mesh_w_index_offset}/{th_index_h+ mesh_h_index_offset}'
-                            res = requests.post(url=request, data = thumbnail)
+                            res = requests.post(url=request, files=cv2.imread(str(save_name)))
+                            print(f'The post request {request} has returned the status {res.status_code}')
+                    print(f'Time from allocating mesh memory to upload all thumbnails:{time.time()-t0}')
             zoom_depth += 1
 
 
