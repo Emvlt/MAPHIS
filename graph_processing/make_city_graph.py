@@ -9,8 +9,8 @@ def construct_graph(city_name:str):
     graph = city_graph.Graph(city_name, ratio=1)
     graph.populate_graph()
     #graph.make_neighbours()
-    graph.extract_features_city_wide()
-    #graph.make_tiles()
+    #graph.extract_features_city_wide()
+    graph.make_tiles()
     #graph.display_element(pathlib.Path(f'images/{city_name}.jpg'))
     #graph.populate_graph()
     '''
@@ -28,6 +28,6 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--city_key', required=False, type=str, default = '36')
+    parser.add_argument('--city_key', required=False, type=str, default = '1')
     args = parser.parse_args()
     main(args)

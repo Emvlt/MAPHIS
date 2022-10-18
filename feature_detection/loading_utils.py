@@ -25,8 +25,9 @@ def load_model(operation:str, ncIn:int, parameters = None, training_type=str):
     saved_model_path = constants.MODELSPATH.joinpath(f'saves/{operation}_{training_type}_state_dict.pth')
     print(f"------ Attempting to load saved Model at {saved_model_path} ------")
     if saved_model_path.is_file():
-        print(f"Loading {operation.capitalize()} Saved Model")
+        print(f"Loading {operation.capitalize()} Saved Model...")
         model.load_state_dict(torch.load(str(saved_model_path)))
+        print(f"Model loaded")
     else:
         print('No saved model, passing')
     return model

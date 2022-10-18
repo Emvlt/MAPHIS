@@ -1,8 +1,9 @@
-from typing import Dict
+from typing import Dict,List
 from collections import Counter
 import math
 from operator import add
 import time
+
 
 import json
 import numpy as np
@@ -97,7 +98,7 @@ class Graph():
         save_folder_path.mkdir(parents=True, exist_ok=True)
         for feature_name in feature_list:
             global_index = 0
-            feature_dict = {
+            city_dict = {
                 "type": "FeatureCollection",
                 "features": []
                 }
@@ -106,41 +107,20 @@ class Graph():
                 for tile_w_index in range(self.n_tile_lattitude):
                     w_offset = self.tile_w * tile_w_index
                     if (tile_w_index,tile_h_index) in self.ordered_nodes:
-                        feature_dict, global_index, tile_dict = self.ordered_nodes[(tile_w_index,tile_h_index)].extract_feature(feature_name, feature_dict, global_index, w_offset, h_offset)
-                        '''### Local save tile dict
-                        print(f'Saving Tile Data Locally...')
-                        t0 = time.time()
-                        constants.SHAPESDATAPATH.joinpath(f'{self.city_name}/{self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name}').mkdir(exist_ok=True,parents=True)
-                        with open(constants.SHAPESDATAPATH.joinpath(f'{self.city_name}/{self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name}/{feature_name}.json'), 'w') as f:
-                            json.dump(tile_dict, f)
-                        print(f'Elapsed Time Saving Tile Data Locally: {time.time()-t0}')'''
+                        city_dict, global_index, tile_dict = self.ordered_nodes[(tile_w_index,tile_h_index)].extract_feature(feature_name, city_dict, global_index, w_offset, h_offset)
+                        ### Local save tile dict
+                        local_save(self.city_name, feature_name, tile_dict, True, self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name)
                         ### Online save tile dict
-                        print('Uploading tile json...')
-                        t0 = time.time()
                         request = f'http://13.40.112.22/v1alpha1/features/{self.city_name}/{self.ordered_nodes[(tile_w_index,tile_h_index)].tile_name}_{feature_name}/insert/replace'
-                        res = requests.post(url=request, json = tile_dict)
-                        print(f'The post request {request} has returned the status {res.status_code}')
-                        print(f'Elapsed Time Uploading Tile Data: {time.time()-t0}')
+                        online_save(request, tile_dict)
             ### Online save city dict
-            print('Uploading city json...')
-            t0 = time.time()
             request = f'http://13.40.112.22/v1alpha1/features/{self.city_name}/{feature_name}/insert/replace'
-            res = requests.post(url=request, json = feature_dict)
-            print(f'The post request {request} has returned the status {res.status_code}')
-            print(f'Elapsed Time Uploading City Data: {time.time()-t0}')
-            '''### Local save city dict
-            print(f'Saving City Data Locally...')
-            t0 = time.time()
-            with open(constants.SHAPESDATAPATH.joinpath(f'{self.city_name}/{feature_name}.json'), 'w') as f:
-                json.dump(feature_dict, f)
-            ### Local save city dict as js file
-            with open(save_folder_path.joinpath(f'{feature_name}.js'), 'w') as out_file:
-                out_file.write(f'var tile_data_{feature_name} = {json.dumps(feature_dict)};' )
-            print(f'Elapsed Time Saving City Data Locally: {time.time()-t0}')'''
+            online_save(request, city_dict)
+            local_save(self.city_name, feature_name, city_dict, False)
 
     def make_tiles(self):
         ### SUSPECTED BRAK POINT: VERY LARGE CITIES
-        save_path = constants.DATASETFOLDERPATH.joinpath(f'tiles_data/{self.city_name}')
+        save_path = constants.TILESDATAPATH.joinpath(f'{self.city_name}')
         max_zoom_depth = 5 # We compute up to 5 zoom level, but could be more
         # First, we determine the maximum zoom level
         # For that zoom level, one pixel on the map is one pixel on the display
@@ -148,6 +128,7 @@ class Graph():
             self.order_graph()
         pixel_width  = self.n_tile_lattitude*self.tile_w
         pixel_height = self.n_tile_longitude*self.tile_h
+        update_city_sizes_dict(self.city_name, [pixel_width, pixel_height])
         max_dim = max(pixel_width, pixel_height)
         i = 13
         while 2**i <= max_dim:
@@ -236,10 +217,10 @@ class Graph():
                             end_mesh_h = (th_index_h+1)*input_tile_size
                             thumbnail = current_mesh[start_mesh_w:end_mesh_w, start_mesh_h:end_mesh_h]
                             thumbnail = np.transpose(cv2.resize(thumbnail, dsize=(256,256), interpolation=cv2.INTER_CUBIC))
-                            #cv2.imwrite(str(save_name), thumbnail)
-                            request = f'http://13.40.112.22/v1alpha1/upload/images/{self.city_name}/{self.max_zoom_level-zoom_depth-8}/{th_index_w + mesh_w_index_offset}/{th_index_h+ mesh_h_index_offset}'
-                            res = requests.post(url=request, files=cv2.imread(str(save_name)))
-                            print(f'The post request {request} has returned the status {res.status_code}')
+                            cv2.imwrite(str(save_name), thumbnail)
+                            #request = f'http://13.40.112.22/v1alpha1/upload/images/{self.city_name}/{self.max_zoom_level-zoom_depth-8}/{th_index_w + mesh_w_index_offset}/{th_index_h+ mesh_h_index_offset}'
+                            #res = requests.post(url=request, files=cv2.imread(str(save_name)))
+                            #print(f'The post request {request} has returned the status {res.status_code}')
                     print(f'Time from allocating mesh memory to upload all thumbnails:{time.time()-t0}')
             zoom_depth += 1
 
@@ -326,3 +307,34 @@ class Graph():
             cv2.imwrite(str(savePath),np.transpose(cityDisplay))
         else:
             return np.transpose(cityDisplay)
+
+
+def online_save(request_url:str, tile_dict:Dict):
+    print('Uploading json...')
+    t0 = time.time()
+    res = requests.post(url=request_url, json = tile_dict)
+    print(f'The post request {request_url} has returned the status {res.status_code}')
+    print(f'Elapsed Time to Upload Data: {time.time()-t0}')
+
+def local_save(city_name:str, feature_name:str, data_dict:Dict, tile:bool, tile_name=None):
+    print('Saving Json Locally')
+    t0 = time.time()
+    if tile_name is not None:
+        save_kwd = f'{city_name}/{tile_name}/{feature_name}.json'
+    else:
+        save_kwd = f'{city_name}/{feature_name}.json'
+
+    with open(constants.SHAPESDATAPATH.joinpath(save_kwd), 'w') as f:
+        json.dump(data_dict, f)
+    if not tile:
+        ### Local save city dict as js file
+        with open(constants.TILESDATAPATH.joinpath(f'overlays/{city_name}/{feature_name}.js'), 'w') as out_file:
+            out_file.write(f'var tile_data_{feature_name} = {json.dumps(data_dict)};' )
+    print(f'Elapsed Time Saving City Data Locally: {time.time()-t0}')
+
+def update_city_sizes_dict(city_name: str, city_size:List):
+    with open(constants.TILESDATAPATH.joinpath('cities_sizes.json')) as file_path:
+        city_sizes_dict:Dict = json.load(file_path)
+    city_sizes_dict[city_name] = city_size
+    with open(constants.TILESDATAPATH.joinpath('cities_sizes.json')) as file_path:
+        json.dumps(city_sizes_dict)

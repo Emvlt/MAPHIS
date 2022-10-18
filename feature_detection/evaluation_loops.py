@@ -27,7 +27,7 @@ def infer_tile(tile_dataloader, model, device, n_output_channels):
 def process_tile(city_name, tile_path:pathlib.Path, save_folder_path:pathlib.Path, hyper_parameters:Dict, model, device:torch.device, n_output_channels:int):
     save_file_path = save_folder_path.joinpath(tile_path.stem)
     if save_file_path.is_dir():
-        print(f'Tile {tile_path.stem} has already been processed. Would you like to overwrite the saved files?')
+        print(f'Tile {tile_path.stem} at location {save_file_path} has already been processed. \n Would you like to overwrite the saved files?')
         answer = ''
         while answer not in ['Y','N']:
             answer = input("Would you like to proceed anyway? (Y/N):")
@@ -39,13 +39,16 @@ def process_tile(city_name, tile_path:pathlib.Path, save_folder_path:pathlib.Pat
     tile_dataset = du.Thumbnails(cityName=city_name, tileName=tile_path.stem, n_input_channels=hyper_parameters['n_input_channels'])
     tile_dataloader = du.DataLoader(tile_dataset, batch_size=1, shuffle=True, num_workers=0)
     thresholded_tile = np.where(0.95<infer_tile(tile_dataloader, model, device, n_output_channels),1,0)
+    print(f'Tile {tile_path.stem} inferred and thresholded.')
     background = thresholded_tile[0]
     if args.save:
-        cv2.imwrite(f'{save_file_path}/_background.jpg', np.uint8(background*255))
-        cv2.imwrite(f'{save_file_path}/_colored.jpg', np.transpose(np.uint8(thresholded_tile[1:]*255),[1,2,0]))
-    for feature_index, feature_name in enumerate(constants.HIGHLEVELFEATURES):
-        if args.save:
-            cv2.imwrite(f'{save_file_path}/_{feature_name}.jpg', np.uint8(thresholded_tile[1+feature_index]*255))
+        print('Saving the background...')
+        cv2.imwrite(f'{save_file_path}/background.jpg', np.uint8(background*255))
+        print('Saving the colored image...')
+        cv2.imwrite(f'{save_file_path}/colored.jpg', np.transpose(np.uint8(thresholded_tile[1:]*255),[1,2,0]))
+        for feature_index, feature_name in enumerate(constants.HIGHLEVELFEATURES):
+            print(f'Saving the feature {feature_name}...')
+            cv2.imwrite(f'{save_file_path}/{feature_name}.jpg', np.uint8(thresholded_tile[1+feature_index]*255))
 
 def main(args):
     n_output_channels = 1 + len(constants.HIGHLEVELFEATURES)
@@ -57,11 +60,12 @@ def main(args):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # Get the city name
-    city_name = constants.CITYKEY[args.city_key]['Town']
 
+    city_name = constants.CITYKEY[args.city_key]['Town']
+    print(f'Processing city : {city_name}')
     if args.save:
         save_folder_path = constants.PROCESSEDPATH.joinpath(city_name)
-
+        print(f'Saving files at {save_folder_path}')
     # Get the file_paths
     tile_paths = du.get_testfile_paths(city_name)
     # Load the model
@@ -75,7 +79,7 @@ def main(args):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--city_key', required=False, type=str, default= '71')
+    parser.add_argument('--city_key', required=False, type=str, default= '0')
     parser.add_argument('--process', required=False, type=str, default= 'segmentation')
     parser.add_argument('--training_type', required=False, type=str, default= 'real')
     parser.add_argument('--save', required=False, type=bool, default= True)

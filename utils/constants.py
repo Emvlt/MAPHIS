@@ -5,7 +5,7 @@ import unittest
 # All constants shared accross models are defined here
 BACKUPFOLDERPATH  = pathlib.Path(r'D:\MAPHIS')
 RDSFFOLDERPATH    = pathlib.Path(r'\\rdsfcifs.acrc.bris.ac.uk\MAPHIS_historical_maps')
-DATASETFOLDERPATH = RDSFFOLDERPATH.joinpath('datasets')
+DATASETFOLDERPATH = BACKUPFOLDERPATH.joinpath('datasets')
 IMAGESFOLDERPATH  = DATASETFOLDERPATH.joinpath('images')
 CLASSIFIEDPATH    = DATASETFOLDERPATH.joinpath('classified')
 CITIESFOLDERPATH  = DATASETFOLDERPATH.joinpath('cities')
@@ -118,7 +118,7 @@ NROWS = 16
 PROXIMITY = 250
 
 CITYKEY = {
-    "0": {"Town": "Barrow-in_Furness", "County": "Lancashire", "Model_flat": "CE_flat"},
+    "0": {"Town": "Barrow-in-Furness", "County": "Lancashire", "Model_flat": "CE_flat"},
     "1": {"Town": "Bedford", "County": "Bedfordshire", "Model_flat": "CE_flat"},
     "2": {"Town": "Birkenhead", "County": "Cheshire", "Model_flat": "CE_flat"},
     "3": {"Town": "Birmingham", "County": "Warwickshire", "Model_flat": "CE_flat"},
@@ -195,6 +195,8 @@ CITYKEY = {
 CITYPATH = {
     'Demo' : CITIESFOLDERPATH.joinpath('Demo'),
     'Luton' : CITIESFOLDERPATH.joinpath('Luton'),
+    'Bedford' : CITIESFOLDERPATH.joinpath('Bedford'),
+    'Barrow-in-Furness': CITIESFOLDERPATH.joinpath('Barrow-in-Furness'),
     }
 
 
