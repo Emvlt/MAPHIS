@@ -84,8 +84,10 @@ def process_contour(contour:List, background:np.ndarray, save_path:pathlib.Path,
     return tile_and_save(image, height, width, key, save_path, indices_dict, zero_mat)
 
 def extract_features_tile(feature_name:str, city_name:str, tile_path:pathlib.Path, progress_dict:Dict):
+    if feature_name not in progress_dict.keys():
+        progress_dict[city_name][feature_name] = {tile_path.stem:''}
 
-    if feature_name in progress_dict[city_name] and progress_dict[city_name][feature_name][tile_path.stem] == 'True':
+    if  progress_dict[city_name][feature_name][tile_path.stem] == 'True':
         print(f"The feature {feature_name} of the tile {tile_path.stem} has already been extracted, ! extracting it again will duplicate extracted elements ! ")
         answer = ''
         while answer not in ['Y','N']:
@@ -102,7 +104,7 @@ def extract_features_tile(feature_name:str, city_name:str, tile_path:pathlib.Pat
         indices_dict[tshirt_size] = int(len(list(save_path.joinpath(tshirt_size).glob(f'*{constants.FILEEXTENSION}')))/2)
     file_path = tile_path.joinpath(f'{feature_name}{constants.FILEEXTENSION}')
     feature_layer = np.uint8(morph_tools.open_and_binarise(str(file_path), 'grayscale', feature_name))
-    background:np.ndarray = np.uint8(morph_tools.just_open(str(constants.CITYPATH[city_name].joinpath(f'{tile_path.stem}{constants.FILEEXTENSION}')), 'color'))
+    background:np.ndarray = np.uint8(morph_tools.just_open(str(constants.CITIESFOLDERPATH.joinpath(f'{city_name}/{tile_path.stem}{constants.FILEEXTENSION}')), 'color'))
     contours = morph_tools.extract_contours(feature_layer)
     for contour in tqdm(contours):
         _, false_positive = morph_tools.is_false_positive(contour)

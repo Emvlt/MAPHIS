@@ -25,7 +25,7 @@ class Graph():
         self.city_name = city_name
         self.ratio = ratio
         self.feature_name = feature_name
-        self.city_path = constants.CITYPATH[city_name]
+        self.city_path = constants.CITIESFOLDERPATH.joinpath(city_name)
         self.nodes:Dict[str, city_node.TileNode] = {}
         self.road_nodes:Dict[city_node.TileNode] = {}
         self.sub_trees = []

@@ -155,4 +155,4 @@ cython_debug/
 
 MAPHISSandbox.pem
 
-feature_detection/inpainted.jpg
+feature_detection/misc.py

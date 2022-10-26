@@ -13,6 +13,7 @@ RAWPATH           = DATASETFOLDERPATH.joinpath('raw')
 PROCESSEDPATH     = DATASETFOLDERPATH.joinpath('processed')
 GRAPHPATH         = DATASETFOLDERPATH.joinpath('graphs')
 MODELSPATH        = DATASETFOLDERPATH.joinpath('models')
+TRAININGPATH      = DATASETFOLDERPATH.joinpath('training')
 TILESDATAPATH     = DATASETFOLDERPATH.joinpath('tiles_data')
 SHAPESDATAPATH    = DATASETFOLDERPATH.joinpath('shape_files')
 PROJECTPATHS = [
@@ -25,7 +26,10 @@ PROJECTPATHS = [
     RAWPATH,
     PROCESSEDPATH,
     GRAPHPATH,
-    MODELSPATH
+    MODELSPATH,
+    TRAININGPATH,
+    TILESDATAPATH,
+    SHAPESDATAPATH
     ]
 FILEEXTENSION = '.jpg'
 
@@ -127,7 +131,7 @@ CITYKEY = {
     "6": {"Town": "Bradford", "County": "Yorkshire", "Model_flat": "CE_flat"},
     "7": {"Town": "Bristol", "County": "Gloucestershire", "Model_flat": "SE_flat"},
     "8": {"Town": "Burnley", "County": "Lancashire", "Model_flat": "CE_flat"},
-    "9": {"Town": "Burton_on_Trent", "County": "Staffordshire", "Model_flat": "CE_flat"},
+    "9": {"Town": "Burton-upon-trent", "County": "Staffordshire", "Model_flat": "CE_flat"},
     "10": {"Town": "Cardiff", "County": "Glamorganshire", "Model_flat": "SE_flat"},
     "11": {"Town": "Carlisle", "County": "Cumberland", "Model_flat": "NE_flat"},
     "12": {"Town": "Castleford", "County": "Yorkshire", "Model_flat": "CE_flat"},
@@ -144,7 +148,7 @@ CITYKEY = {
     "23": {"Town": "Grimsby", "County": "Lincolnshire", "Model_flat": "CE_flat"},
     "24": {"Town": "Halifax", "County": "Yorkshire", "Model_flat": "CE_flat"},
     "25": {"Town": "Huddersfield", "County": "Yorkshire", "Model_flat": "CE_flat"},
-    "26": {"Town": "Kingston", "County": "upon", "Model_flat": "Hull"},
+    "26": {"Town": "Kingston-upon-Hull", "County": "upon", "Model_flat": "Hull"},
     "27": {"Town": "Ipswich", "County": "Suffolk", "Model_flat": "EA_flat"},
     "28": {"Town": "Wallsend", "County": "Northumberland", "Model_flat": "CE_flat"},
     "29": {"Town": "Keighley", "County": "Yorkshire", "Model_flat": "CE_flat"},
@@ -157,9 +161,9 @@ CITYKEY = {
     "36": {"Town": "Luton", "County": "Bedfordshire", "Model_flat": "SE_flat"},
     "37": {"Town": "Macclesfield", "County": "Cheshire", "Model_flat": "CE_flat"},
     "38": {"Town": "Manchester", "County": "Lancashire", "Model_flat": "CE_flat"},
-    "39": {"Town": "Merthyr", "County": "Tydvil", "Model_flat": "Glamorganshire"},
+    "39": {"Town": "MerthyrTydvil", "County": "Tydvil", "Model_flat": "Glamorganshire"},
     "40": {"Town": "Middlesbrough", "County": "Yorkshire", "Model_flat": "CE_flat"},
-    "41": {"Town": "Newcastle_upon_Tyne", "County": "Northumberland", "Model_flat": "NE_flat"},
+    "41": {"Town": "Newcastle-upon-Tyne", "County": "Northumberland", "Model_flat": "NE_flat"},
     "42": {"Town": "Newport", "County": "Monmmouthshire", "Model_flat": "SE_flat"},
     "43": {"Town": "Northampton", "County": "Northamptonshire", "Model_flat": "CE_flat"},
     "44": {"Town": "Norwich", "County": "Norfolk", "Model_flat": "EA_flat"},
@@ -171,34 +175,25 @@ CITYKEY = {
     "50": {"Town": "Preston", "County": "Lancashire", "Model_flat": "CE_flat"},
     "51": {"Town": "Reading", "County": "Berkshire", "Model_flat": "SE_flat"},
     "52": {"Town": "Rochdale", "County": "Lancashire", "Model_flat": "CE_flat"},
-    "53": {"Town": "Salford", "County": "Lancashire", "Model_flat": "CE_flat"},
-    "54": {"Town": "Sheerness", "County": "Kent", "Model_flat": "SE_flat"},
-    "55": {"Town": "Sheffield", "County": "Yorkshire", "Model_flat": "CE_flat"},
-    "56": {"Town": "Southampton", "County": "Hampshire", "Model_flat": "SE_flat"},
-    "57": {"Town": "Tynemouth", "County": "Northumberland", "Model_flat": "NE_flat"},
-    "58": {"Town": "Stockport", "County": "Cheshire", "Model_flat": "CE_flat"},
-    "59": {"Town": "Stockton_on_Tees", "County": "Durham", "Model_flat": "NE_flat"},
-    "60": {"Town": "Stoke_on_Trent", "County": "Staffordshire", "Model_flat": "CE_flat"},
-    "61": {"Town": "Sunderland", "County": "Durham", "Model_flat": "NE_flat"},
-    "62": {"Town": "Swansea", "County": "Glamorganshire", "Model_flat": "SE_flat"},
-    "63": {"Town": "Swindon", "County": "Wiltshire", "Model_flat": "SE_flat"},
-    "64": {"Town": "Taunton", "County": "Somerset", "Model_flat": "SE_flat"},
-    "65": {"Town": "Walsall", "County": "Staffordshire", "Model_flat": "CE_flat"},
-    "66": {"Town": "Warrington", "County": "Lancashire", "Model_flat": "CE_flat"},
-    "67": {"Town": "Wigan", "County": "Lancashire", "Model_flat": "CE_flat"},
-    "68": {"Town": "Wolverhampton", "County": "Staffordshire", "Model_flat": "CE_flat"},
-    "69": {"Town": "Worcester", "County": "Worcestershire", "Model_flat": "SE_flat"},
-    "70": {"Town": "York", "County": "Yorkshire", "Model_flat": "CE_flat"},
-    "71": {"Town": "Demo", "County": "Demo", "Model_flat": "CE_flat"}
+    "53": {"Town": "Sheerness", "County": "Kent", "Model_flat": "SE_flat"},
+    "54": {"Town": "Sheffield", "County": "Yorkshire", "Model_flat": "CE_flat"},
+    "55": {"Town": "Southampton", "County": "Hampshire", "Model_flat": "SE_flat"},
+    "56": {"Town": "Tynemouth", "County": "Northumberland", "Model_flat": "NE_flat"},
+    "57": {"Town": "Stockport", "County": "Cheshire", "Model_flat": "CE_flat"},
+    "58": {"Town": "Stockton-on-Tees", "County": "Durham", "Model_flat": "NE_flat"},
+    "59": {"Town": "Stoke-on-Trent", "County": "Staffordshire", "Model_flat": "CE_flat"},
+    "60": {"Town": "Sunderland", "County": "Durham", "Model_flat": "NE_flat"},
+    "61": {"Town": "Swansea", "County": "Glamorganshire", "Model_flat": "SE_flat"},
+    "62": {"Town": "Swindon", "County": "Wiltshire", "Model_flat": "SE_flat"},
+    "63": {"Town": "Taunton", "County": "Somerset", "Model_flat": "SE_flat"},
+    "64": {"Town": "Walsall", "County": "Staffordshire", "Model_flat": "CE_flat"},
+    "65": {"Town": "Warrington", "County": "Lancashire", "Model_flat": "CE_flat"},
+    "66": {"Town": "Wigan", "County": "Lancashire", "Model_flat": "CE_flat"},
+    "67": {"Town": "Wolverhampton", "County": "Staffordshire", "Model_flat": "CE_flat"},
+    "68": {"Town": "Worcester", "County": "Worcestershire", "Model_flat": "SE_flat"},
+    "69": {"Town": "York", "County": "Yorkshire", "Model_flat": "CE_flat"},
+    "70": {"Town": "Demo", "County": "Demo", "Model_flat": "CE_flat"}
     }
-
-CITYPATH = {
-    'Demo' : CITIESFOLDERPATH.joinpath('Demo'),
-    'Luton' : CITIESFOLDERPATH.joinpath('Luton'),
-    'Bedford' : CITIESFOLDERPATH.joinpath('Bedford'),
-    'Barrow-in-Furness': CITIESFOLDERPATH.joinpath('Barrow-in-Furness'),
-    }
-
 
 CARDINALTOCARTESIAN = {
             'north':(-1,0),

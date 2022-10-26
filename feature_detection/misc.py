@@ -20,7 +20,9 @@ img  = cv2.imread(str(image_path))[:,:,0]
 
 mask = cv2.imread(str(mask_path))
 mask = np.transpose(mask,(1,0,2))[:,:,0]
-
+mask = morph_tools.dilation(mask, 3)
+plt.matshow(mask)
+plt.show()
 #dst  = cv2.bitwise_and(img, mask) + (255-mask)
 dst  = cv2.bitwise_or(cv2.bitwise_and(img, mask),morph_tools.dilation(255-mask))
 plt.matshow(dst)

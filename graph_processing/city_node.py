@@ -47,7 +47,7 @@ class TileNode():
         self.tile_name = tile_name
         self.feature_name:str = feature_name
         self.ratio:float = ratio
-        self.boundaries_geolocalised = get_boundaries(constants.CITYPATH[city_name].joinpath(f'{tile_name}.tfw'))
+        self.boundaries_geolocalised = get_boundaries(constants.CITIESFOLDERPATH.joinpath(f'{city_name}/{tile_name}.tfw'))
         self.neighbours = {
             'north':None,
             'north_east':None,
@@ -61,7 +61,7 @@ class TileNode():
         self.center_lattitude = (self.boundaries_geolocalised['west_boundary'] + self.boundaries_geolocalised['east_boundary'])/2
         self.center_longitude = (self.boundaries_geolocalised['north_boundary'] + self.boundaries_geolocalised['south_boundary'])/2
 
-        self.ref_image_path = constants.CITYPATH[city_name].joinpath(f'{tile_name}.jpg')
+        self.ref_image_path = constants.CITIESFOLDERPATH.joinpath(f'{city_name}/{tile_name}.jpg')
         self.classified_layer_path = constants.CLASSIFIEDPATH.joinpath(f'{self.feature_name}/{self.city_name}/{self.tile_name}.json')
         self.jpeg_layers_path = constants.RAWPATH.joinpath(f'{self.city_name}/{self.tile_name}')
 
@@ -256,7 +256,7 @@ class TileNode():
         if light_profile:
             return mask*(1-bkg_msk)*val_range
 
-        background = morph_tools.just_open(str(constants.CITYPATH[self.city_name].joinpath(f'{self.tile_name}.jpg')), self.ratio)
+        background = morph_tools.just_open(str(self.ref_image_path), self.ratio)
         return cv2.bitwise_and(background, mask*(1-bkg_msk))*val_range
 
     def display_roads(self, val_range=1, ratio=0.1):

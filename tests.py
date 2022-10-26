@@ -14,6 +14,7 @@ class TestConstants(unittest.TestCase):
 class TestPaths(unittest.TestCase):
     def test_is_path_a_folder(self):
         for project_path in constants.PROJECTPATHS:
+            print(project_path)
             self.assertTrue(project_path.is_dir())
 
 

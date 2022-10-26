@@ -11,13 +11,13 @@ import numpy as np
 from torch.utils.data import DataLoader
 
 def get_testfile_paths(city_name:str):
-    path_to_test_files = constants.CITYPATH[city_name].glob(f'*{constants.FILEEXTENSION}')
+    path_to_test_files = constants.CITIESFOLDERPATH.glob(f'{city_name}/*{constants.FILEEXTENSION}')
     print('Test files paths loaded...')
     return path_to_test_files
 
 class Windows(Dataset):
     def __init__(self, n_input_channels:int) -> None:
-        self.path_to_data = constants.TRAININGFOLDERPATH
+        self.path_to_data = constants.TRAININGPATH
         self.n_input_channels = n_input_channels
 
     def __len__(self):
@@ -39,14 +39,14 @@ class Windows(Dataset):
         return image, target
 
 class Thumbnails(Dataset):
-    def __init__(self, cityName:str,  tileName:str, n_input_channels:int) -> None:
-        print(f'Opening tile {tileName} for the city of {cityName}')
+    def __init__(self, city_name:str,  tileName:str, n_input_channels:int) -> None:
+        print(f'Opening tile {tileName} for the city of {city_name}')
         self.tilingParameters = json.load(open(constants.DATASETFOLDERPATH.joinpath('tiling_parameters.json')))
         self.tilesCoordinates = self.tilingParameters['coordinates']
 
         self.paddingOpBKG = nn.ConstantPad2d((constants.HEIGHTPADDING, constants.HEIGHTPADDING, constants.WIDTHPADDING, constants.WIDTHPADDING),1)
         self.paddingOpTGT = nn.ConstantPad2d((constants.HEIGHTPADDING, constants.HEIGHTPADDING, constants.WIDTHPADDING, constants.WIDTHPADDING),0)
-        background = morph_tools.just_open((constants.CITYPATH[cityName] / f'{tileName}{constants.FILEEXTENSION}'), mode = 'grayscale')
+        background = morph_tools.just_open(constants.CITIESFOLDERPATH.joinpath( f'{city_name}/{tileName}/{constants.FILEEXTENSION}'), mode = 'grayscale')
 
         if n_input_channels ==1:
             self.paddedBackground:torch.Tensor = self.paddingOpBKG(ToTensor()(np.transpose(background)))
