@@ -22,32 +22,35 @@ from feature_node import Node as feature_node
 from pathfinding import explore_street_names
 
 
-def get_boundaries(tfw_data_path:pathlib.Path) -> dict:
+def get_boundaries(tfw_data_path:pathlib.Path, width, height) -> dict:
     tfw_raw = open(tfw_data_path, 'r').read()
     x_diff = float(tfw_raw.split("\n")[0])
     y_diff = float(tfw_raw.split("\n")[3])
     west_boundary = float(tfw_raw.split("\n")[4])
     north_boundary = float(tfw_raw.split("\n")[5])
-    east_boundary = west_boundary + (constants.TILEWIDTH - 1) * x_diff
-    south_boundary = north_boundary + (constants.TILEHEIGHT - 1) * y_diff
+    east_boundary = west_boundary + (width - 1) * x_diff
+    south_boundary = north_boundary + (height - 1) * y_diff
     return {
         'west_boundary':west_boundary,
         'north_boundary':north_boundary,
         'east_boundary':east_boundary,
         'south_boundary':south_boundary,
         'x_diff':x_diff, 'y_diff':y_diff,
-        'lattitude_length': (constants.TILEWIDTH - 1) * x_diff,
-        'longitude_length':(constants.TILEHEIGHT - 1) * y_diff}
+        'lattitude_length': (width - 1) * x_diff,
+        'longitude_length':(height - 1) * y_diff}
 
 @dataclass
 class TileNode():
-    def __init__(self, city_name:str, tile_name:str, feature_name:str, ratio:float) -> None:
+    def __init__(self, city_name:str, tile_name:str, feature_name:str, ratio:float, width:int, height:int) -> None:
         self.nodes: Dict[str, feature_node] = {}
         self.city_name = city_name
         self.tile_name = tile_name
         self.feature_name:str = feature_name
         self.ratio:float = ratio
-        self.boundaries_geolocalised = get_boundaries(constants.CITIESFOLDERPATH.joinpath(f'{city_name}/{tile_name}.tfw'))
+        self.width = width
+        self.height= height
+
+        self.boundaries_geolocalised = get_boundaries(constants.CITIESFOLDERPATH.joinpath(f'{city_name}/{tile_name}.tfw'), width, height)
         self.neighbours = {
             'north':None,
             'north_east':None,
@@ -77,19 +80,18 @@ class TileNode():
     def initialise_graph(self):
         load_path = constants.GRAPHPATH.joinpath(f'tile_graphs/{self.city_name}/{self.tile_name}/{self.feature_name}.json')
 
-        print(f'Attempting to load from saved graph at {load_path.name} from {load_path.parent}')
+        #print(f'Attempting to load from saved graph at {load_path.name} from {load_path.parent}')
         if load_path.is_file():
-            print("Success, loading")
+            #print("Success, loading")
             self.load_from_json(load_path)
             self.is_classified = True
         else:
-            print(f'No saved graph file found, fetching classified folder at {self.classified_layer_path}')
+            #print(f'No saved graph file found, fetching classified folder at {self.classified_layer_path}')
             if self.classified_layer_path.is_file():
                 print('Constructing New Graph')
                 self.construct_graph(load_path)
                 self.is_classified = True
-            else:
-                print('displaying base image')
+
 
     def construct_graph(self, save_path=None):
         dataframe = pd.read_json(self.classified_layer_path).transpose()
@@ -228,8 +230,8 @@ class TileNode():
 
     def display_neighbours(self, ratio=0.1):
         ### WORKS BADLY, ALLOCATES EMPTY NEIGHBOURING TILES TO CORNER TILES
-        width = int(constants.TILEWIDTH*ratio)
-        height = int(constants.TILEHEIGHT*ratio)
+        width = int(self.width*ratio)
+        height = int(self.height*ratio)
         mat = np.zeros((int(width*3),int(height*3)), np.uint8)
         mat[width:width*2, height:height*2] = self.return_display_element('background', 255, ratio)
         for neighbour_cardinal, neighbour_node in self.neighbours.items():
@@ -248,7 +250,7 @@ class TileNode():
 
         bkg_msk = morph_tools.open_and_binarise(str(self.jpeg_layers_path.joinpath(f'{constants.BACKGROUNDKWDS[0]}.jpg')), constants.BACKGROUNDKWDS[0], self.ratio)
         bkg_msk = cv2.cvtColor(np.uint8(bkg_msk), cv2.COLOR_GRAY2BGR)
-        mask = np.zeros((int(constants.TILEHEIGHT*self.ratio), int(constants.TILEWIDTH*self.ratio),3), np.uint8)
+        mask = np.zeros((int(self.height*self.ratio), int(self.width*self.ratio),3), np.uint8)
         for node in self.nodes.values():
             if self.inv_map[node.label] in ['L', 'L.P', 'Post', 'S.P']:
                 cv2.circle(mask, (node.pos_x,  node.pos_y), max_rad, (1,1,1), -1)
