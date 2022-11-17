@@ -19,5 +19,6 @@ if __name__ == '__main__':
     parser.add_argument('--city_key', required=False, type=str, default = '1')
     args = parser.parse_args()
 
-    construct_graph('Barrow-in-Furness')
-    construct_graph('Sheerness')
+    for city_dict in constants.CITYKEY.values():
+        city_name = city_dict['Town']
+        construct_graph(city_name)

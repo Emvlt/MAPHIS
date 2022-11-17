@@ -4,7 +4,6 @@ import unittest
 
 # All constants shared accross models are defined here
 BACKUPFOLDERPATH  = pathlib.Path(r'D:\MAPHIS')
-RDSFFOLDERPATH    = pathlib.Path(r'\\rdsfcifs.acrc.bris.ac.uk\MAPHIS_historical_maps')
 DATASETFOLDERPATH = BACKUPFOLDERPATH.joinpath('datasets')
 IMAGESFOLDERPATH  = DATASETFOLDERPATH.joinpath('images')
 CLASSIFIEDPATH    = DATASETFOLDERPATH.joinpath('classified')
@@ -18,7 +17,6 @@ TILESDATAPATH     = DATASETFOLDERPATH.joinpath('tiles_data')
 SHAPESDATAPATH    = DATASETFOLDERPATH.joinpath('shape_files')
 PROJECTPATHS = [
     BACKUPFOLDERPATH,
-    RDSFFOLDERPATH,
     DATASETFOLDERPATH,
     IMAGESFOLDERPATH,
     CLASSIFIEDPATH,
