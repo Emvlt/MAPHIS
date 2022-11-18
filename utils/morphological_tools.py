@@ -59,14 +59,6 @@ def extract_contours(mat:np.ndarray) -> List:
 def empty_tile(val=None):
     return np.zeros( (constants.TILEHEIGHT, constants.TILEWIDTH), np.uint8) if val is None else np.ones( (constants.TILEHEIGHT, constants.TILEWIDTH), np.uint8)*val
 
-def load_background(city_name, tile_name):
-    target = empty_tile()
-    for background_element in constants.BACKGROUNDKWDS:
-        path = constants.RAWPATH / f'{city_name}/{tile_name}/{background_element}{constants.FILEEXTENSION}'
-        if path.is_file():
-            target = cv2.bitwise_or(target, np.uint8(open_and_binarise(str(path), 'grayscale', background_element)))
-    return target
-
 def load_high_level_feature(city_name, tile_name, high_level_feature_name):
     target = empty_tile()
     for feature_name in constants.HIGHLEVELFEATURES[high_level_feature_name]:
@@ -146,3 +138,12 @@ def compute_shape_histogram(test_folders_paths:List[pathlib.Path], feature_name:
         histogram_dict['W_distribution']['histogram'] = width_histo
         histogram_dict['W_distribution']['bins'] = width_bins
     return histogram_dict
+
+### EXPERIMENTAL
+def load_background(city_name, tile_name):
+    target = empty_tile()
+    for background_element in constants.BACKGROUNDKWDS:
+        path = constants.RAWPATH / f'{city_name}/{tile_name}/{background_element}{constants.FILEEXTENSION}'
+        if path.is_file():
+            target = cv2.bitwise_or(target, np.uint8(open_and_binarise(str(path), 'grayscale', background_element)))
+    return target

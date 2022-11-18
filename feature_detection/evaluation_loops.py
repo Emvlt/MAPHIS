@@ -46,12 +46,12 @@ def process_tile(city_name, tile_path:pathlib.Path, save_folder_path:pathlib.Pat
         cv2.imwrite(f'{save_file_path}/background.jpg', np.uint8(background*255))
         print('Saving the colored image...')
         cv2.imwrite(f'{save_file_path}/colored.jpg', np.transpose(np.uint8(thresholded_tile[1:]*255),[1,2,0]))
-        for feature_index, feature_name in enumerate(constants.HIGHLEVELFEATURES):
+        for feature_index, feature_name in enumerate(constants.FEATURENAMES):
             print(f'Saving the feature {feature_name}...')
             cv2.imwrite(f'{save_file_path}/{feature_name}.jpg', np.uint8(thresholded_tile[1+feature_index]*255))
 
 def main(args):
-    n_output_channels = 1 + len(constants.HIGHLEVELFEATURES)
+    n_output_channels = 1 + len(constants.FEATURENAMES)
 
     hyper_parameters = {
         'n_input_channels': 3

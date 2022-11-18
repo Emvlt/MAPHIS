@@ -1,10 +1,8 @@
 """Holds all the constants shared accross the project"""
 import pathlib
-import unittest
 
 # All constants shared accross models are defined here
 BACKUPFOLDERPATH  = pathlib.Path(r'D:\MAPHIS')
-RDSFFOLDERPATH    = pathlib.Path(r'\\rdsfcifs.acrc.bris.ac.uk\MAPHIS_historical_maps')
 DATASETFOLDERPATH = BACKUPFOLDERPATH.joinpath('datasets')
 IMAGESFOLDERPATH  = DATASETFOLDERPATH.joinpath('images')
 CLASSIFIEDPATH    = DATASETFOLDERPATH.joinpath('classified')
@@ -18,7 +16,6 @@ TILESDATAPATH     = DATASETFOLDERPATH.joinpath('tiles_data')
 SHAPESDATAPATH    = DATASETFOLDERPATH.joinpath('shape_files')
 PROJECTPATHS = [
     BACKUPFOLDERPATH,
-    RDSFFOLDERPATH,
     DATASETFOLDERPATH,
     IMAGESFOLDERPATH,
     CLASSIFIEDPATH,
@@ -34,8 +31,7 @@ PROJECTPATHS = [
 FILEEXTENSION = '.jpg'
 
 # Features Names
-FEATURENAMES = ('buildings', 'embankments', 'labels', 'neighbourhoods',
-                'rail', 'rivers', 'stamps_large_font', 'stamps_small_font', 'trees')
+FEATURENAMES = ('buildings', 'embankments', 'rail', 'rivers', 'text', 'trees')
 
 # Hex keys
 HEXKEYS = {
@@ -68,56 +64,32 @@ COLORTHRESHOLD = {
     'trees':167,
     }
 
-HIGHLEVELFEATURES = ['imprint', 'text','vegetation']
-
-HIGHTOLOWDETECTION = {
-    'imprint':['buildings'],
-    'embankments':['embankments'],
-    'rail':['rail'],
-    'rivers':['rivers'],
-    'text':['labels', 'stamps_small_font', 'stamps_large_font'],
-    'vegetation':['trees']
-    }
-
-LOWTOHIGHTDETECTION= {
-    'buildings':'imprint',
-    'labels':'text',
-    'stamps_large_font':'text',
-    'stamps_small_font':'text',
-    'trees':'vegetation'
-    }
-
-HIGHTOLOWDISPLAY = {
-    'imprint':['buildings', 'embankments', 'neighbourhoods', 'rail', 'rivers'],
-    'text':['labels', 'stamps_small_font', 'stamps_large_font'],
-    'vegetation':['trees']
-    }
-
-LOWTOHIGHTDISPLAY = {
-    'buildings':'imprint',
-    'labels':'text',
-    'neighbourhoods':'imprint',
-    'rail':'imprint',
-    'rivers':'imprint',
-    'stamps_large_font':'text',
-    'stamps_small_font':'text',
-    'trees':'vegetation'
-    }
-
-BACKGROUNDKWDS = ['neighbourhoods', 'rail', 'rivers']
-
 # Tile sizes
-TILEHEIGHT = 7590
-TILEWIDTH = 11400
+TILEDICT = {
+    'small':{
+        'height':7200,
+        'width':10800,
+        'height_padding':121,
+        'width_padding':169,
+        'height_stride':50,
+        'width_stride':50,
+        'n_cols':23,
+        'n_rows':15
+    },
+    'large':{
+        'height':7590,
+        'width':11400,
+        'height_padding':157,
+        'width_padding':100,
+        'height_stride':50,
+        'width_stride':50,
+        'n_cols':24,
+        'n_rows':16
+    }
+}
 
 # Thumbnail parameters
-KERNELSIZE = 512
-WIDTHPADDING=100
-HEIGHTPADDING = 157
-WIDTHSTRIDE = 50
-HEIGHTSTRIDE = 50
-NCOLS = 24
-NROWS = 16
+THUMBNAILSIZE = 512
 
 PROXIMITY = 250
 

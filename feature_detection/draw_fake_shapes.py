@@ -227,16 +227,15 @@ def generateBlockOfFlats(sizeImg:int) -> Tuple[np.uint8, np.uint8, np.uint8]:
 def generateFeature(thumbnailSize:int) -> Tuple[np.uint8, np.uint8, str]:
     size_key = constants.DRAWING['size_to_shirt'][thumbnailSize]
     feature_name = random.choices(statistics_dict['shirt_to_feature_probability'][size_key]['features'], statistics_dict['shirt_to_feature_probability'][size_key]['probabilities'])[0]
-    high_level_feature = constants.LOWTOHIGHTDISPLAY[feature_name]
-    shape_index = random.randint(0,statistics_dict[high_level_feature][feature_name][size_key]-1)
-    shape_path  = constants.IMAGESFOLDERPATH.joinpath(f'{high_level_feature}/{feature_name}/{size_key}/{shape_index}{constants.FILEEXTENSION}')
-    mask_path   = constants.IMAGESFOLDERPATH.joinpath(f'{high_level_feature}/{feature_name}/{size_key}/{shape_index}_mask{constants.FILEEXTENSION}')
+    shape_index = random.randint(0,statistics_dict[feature_name][size_key]-1)
+    shape_path  = constants.IMAGESFOLDERPATH.joinpath(f'{feature_name}/{size_key}/{shape_index}{constants.FILEEXTENSION}')
+    mask_path   = constants.IMAGESFOLDERPATH.joinpath(f'{feature_name}/{size_key}/{shape_index}_mask{constants.FILEEXTENSION}')
     image = np.asarray(Image.open(shape_path))
     mask = np.asarray(Image.open(mask_path))
     rotationAngle = random.randint(0,180)
     rotatedImage = ndimage.rotate(cv2.bitwise_or(image, 255-mask), rotationAngle, reshape=True, mode='constant', cval=255, order=1)
     rotatedMask = ndimage.rotate(mask, rotationAngle, reshape=True, mode='constant', cval=0, order=1)
-    return rotatedImage, rotatedMask, high_level_feature
+    return rotatedImage, rotatedMask, feature_name
 
 def fillThumbnail(thumbnailSize:int, pattern:np.uint8, mask:np.uint8, boundRowLow:int, boundRowHigh:int, boundColLow:int, boundColHigh:int, imageToFill:np.uint8, maskToFill:np.uint8)-> Tuple[np.uint8, np.uint8]:
     """given a pattern, randomly places it in a thumbnail
@@ -288,15 +287,15 @@ def generateFeatureOrStripe(thumbnailSize:int, boundRowLow:int, boundRowHigh:int
         pattern, mask, choice = generateFeature(thumbnailSize)
 
     else:
-        choice = 'imprint'
+        choice = 'buildings'
         if thumbnailSize == 512:
             pattern, mask = generateBlockOfFlats(thumbnailSize)
         else:
             pattern, mask = generateThickShape(int(thumbnailSize/math.sqrt(2)))
 
-    image, mask = fillThumbnail(thumbnailSize, pattern, mask, boundRowLow, boundRowHigh,boundColLow, boundColHigh, image, full_mask[:,:,1+constants.HIGHLEVELFEATURES.index(choice)])
+    image, mask = fillThumbnail(thumbnailSize, pattern, mask, boundRowLow, boundRowHigh,boundColLow, boundColHigh, image, full_mask[:,:,1+constants.FEATURENAMES.index(choice)])
 
-    full_mask[:,:,1+constants.HIGHLEVELFEATURES.index(choice)] = mask
+    full_mask[:,:,1+constants.FEATURENAMES.index(choice)] = mask
 
     return image, full_mask
 
@@ -337,7 +336,7 @@ def generateFeaturesAndMask(sizeImg=512, minSize = 64) -> Tuple[np.uint8, Dict] 
         Tuple[np.uint8, Dict]: image, dictionnary of associated masks (one per feature)
     """
     image = np.ones((sizeImg,sizeImg,3), np.uint8)*255
-    mask  = np.zeros((sizeImg,sizeImg,4), np.uint8)
+    mask  = np.zeros((sizeImg,sizeImg,1+len(constants.FEATURENAMES)), np.uint8)
     gridSize = int(sizeImg/minSize)
     grid = np.zeros((gridSize,gridSize), np.uint8)
     for indexRow in range(gridSize):
@@ -354,7 +353,7 @@ def make_batch(batchSize:int, n_input_channels:int) ->Tuple[np.uint8, Dict]:
     # Create empty batch for the image
     batch = np.zeros((batchSize, n_input_channels, 512, 512), np.uint8)
     # Create a tensor for the target
-    batch_mask = np.zeros((batchSize, 1+len(constants.HIGHLEVELFEATURES), 512, 512), np.uint8)
+    batch_mask = np.zeros((batchSize, 1+len(constants.FEATURENAMES), 512, 512), np.uint8)
     # Populate the image batch and the mask batches with the appropriate data
     for batch_index in range(batchSize):
 
@@ -368,7 +367,7 @@ def make_batch(batchSize:int, n_input_channels:int) ->Tuple[np.uint8, Dict]:
 
         _, binarised_masks  = cv2.threshold(masks, 10 ,1, cv2.THRESH_BINARY)
 
-        for feature_index in range(len(constants.HIGHLEVELFEATURES)):
+        for feature_index in range(len(constants.FEATURENAMES)):
             batch_mask[batch_index, 1+feature_index] = binarised_masks[:,:,1+feature_index]
             background = cv2.bitwise_or(background,  binarised_masks[:,:,1+feature_index])
 
@@ -381,8 +380,10 @@ def main():
         batch, b_m = make_batch(2, 3)
         plt.matshow(batch[0,0])
         plt.show()
-        for j in range(b_m.shape[1]):
+        channel_names = ['background'] + list(constants.FEATURENAMES)
+        for j in range(len(channel_names)):
             plt.matshow(b_m[0,j])
+            plt.title(channel_names[j])
             plt.show()
 
 if __name__ =='__main__':

@@ -1,8 +1,8 @@
 import sys
 sys.path.append('..')
-from utils import constants
+import utils.constants as constants
 import json
-from models_folder import models
+import models_folder.models as  models
 import torch
 
 def load_model(operation:str, ncIn:int, parameters = None, training_type=str):
@@ -17,7 +17,7 @@ def load_model(operation:str, ncIn:int, parameters = None, training_type=str):
 
     print(f"------ Instanciating {operation.capitalize()} Model ------")
     if operation == 'segmentation':
-        model = models.SegmentationModel(parameters, ncIn, 1+len(constants.HIGHLEVELFEATURES))
+        model = models.SegmentationModel(parameters, ncIn, 1+len(constants.FEATURENAMES))
     else:
         print(f'{operation.capitalize()} not implemented')
         return None

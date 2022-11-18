@@ -156,3 +156,8 @@ cython_debug/
 MAPHISSandbox.pem
 
 feature_detection/misc.py
+feature_detection/validation.py
+
+graph_processing/upload_utils.py
+
+models_folder/check_saved_model.py

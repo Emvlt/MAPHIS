@@ -1,7 +1,6 @@
-from random import paretovariate
-
 from loading_utils import load_model
-from dataset_utils import Windows, DataLoader
+from dataset_utils import RealFeatures
+from torch.utils.data import Dataset, DataLoader
 from typing import Dict
 import torch
 import torch.nn as nn
@@ -27,10 +26,7 @@ def train_loop(operation:str, device:torch.cuda.Device, model, hyper_parameters:
     image_save_path.mkdir(parents=True, exist_ok=True)
     model_save_path = constants.MODELSPATH.joinpath('saves')
     model_save_path.mkdir(parents=True, exist_ok=True)
-    '''
-    # MONAI Fancy attention Unet
-    model = networks.nets.UNETR(in_channels=hyper_parameters['n_input_channels'], out_channels=4, img_size=512, pos_embed='conv', norm_name='instance', spatial_dims=2)
-    '''
+
     # Good Ol' Unet
     model = load_model(operation, ncIn=hyper_parameters['n_input_channels'], parameters = hyper_parameters['architecture_parameters'], training_type=training_type)
 
@@ -75,7 +71,7 @@ def train_loop(operation:str, device:torch.cuda.Device, model, hyper_parameters:
 
                 if i %100 == 0:
                     cv2.imwrite(image_save_path.joinpath( f'{operation}_target.jpg'), np.uint8((input_image[0,0]*(1-input_target[0,0])).detach().cpu()*255))
-                    for feature_index, f_name in enumerate(constants.HIGHLEVELFEATURES):
+                    for feature_index, f_name in enumerate(constants.FEATURENAMES):
                         cv2.imwrite(image_save_path.joinpath(f'{operation}_{f_name}.jpg'), np.uint8(out[0,1+feature_index].detach().cpu()*255))
 
                     d_m = dice_loss(out, input_target).item()
@@ -87,7 +83,7 @@ def train_loop(operation:str, device:torch.cuda.Device, model, hyper_parameters:
                     writer.add_scalar(tag='bce_loss', scalar_value=c_e, global_step=epoch*hyper_parameters['n_samples']+i)
 
         elif training_type == 'real':
-            real_dataset = Windows(hyper_parameters['n_input_channels'])
+            real_dataset = RealFeatures(hyper_parameters['n_input_channels'])
             data_loader  = DataLoader(real_dataset, batch_size=hyper_parameters['batch_size'], shuffle=True, num_workers=0)
             for i, data in enumerate(data_loader):
 
@@ -107,7 +103,7 @@ def train_loop(operation:str, device:torch.cuda.Device, model, hyper_parameters:
 
                 if i %100 == 0:
                     cv2.imwrite(str(image_save_path.joinpath( f'{operation}_target.jpg')), np.uint8((input_image[0,0]*(1-input_target[0,0])).detach().cpu()*255))
-                    for feature_index, f_name in enumerate(constants.HIGHLEVELFEATURES):
+                    for feature_index, f_name in enumerate(constants.FEATURENAMES):
                         cv2.imwrite(str(image_save_path.joinpath(f'{operation}_{f_name}.jpg')), np.uint8(out[0,1+feature_index].detach().cpu()*255))
 
                     d_m = dice_loss(out, input_target).item()

@@ -11,8 +11,8 @@ import numpy as np
 from tqdm import tqdm
 
 sys.path.append('..')
-from utils import constants
-from utils import morphological_tools as morph_tools
+import utils.constants as constants
+import utils.morphological_tools as morph_tools
 
 def get_key(max_dim:int, max_size_dict):
     for key, size in max_size_dict.items():

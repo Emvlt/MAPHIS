@@ -3,7 +3,7 @@ import sys
 import pathlib
 
 sys.path.append('..')
-from utils import constants
+import utils.constants as constants
 
 import city_node
 

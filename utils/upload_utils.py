@@ -4,23 +4,24 @@ import pathlib
 import requests
 import argparse
 
-from sympy import re
 import utils.constants as constants
 
-def json_online_save(request_url:str, tile_dict:Dict):
-    print('Uploading json...')
-    t0 = time.time()
+def json_online_save(request_url:str, tile_dict:Dict, verbose=False):
+    if verbose:
+        print('Uploading json...')
+        t0 = time.time()
     res = requests.post(url=request_url, json = tile_dict)
-    print(f'The post request {request_url} has returned the status {res.status_code}')
-    print(f'Elapsed Time to Upload Data: {time.time()-t0}')
+    if verbose:
+        print(f'The post request {request_url} has returned the status {res.status_code}')
+        print(f'Elapsed Time to Upload Data: {time.time()-t0}')
 
-def thumbnail_online_save(thumbnail_path:pathlib.Path, zoom_url:str, x_value:str, y_value:str):
-    t0 = time.time()
+def thumbnail_online_save(thumbnail_path:pathlib.Path, zoom_url:str, x_value:str, y_value:str, verbose=False):
+    if verbose:
+        t0 = time.time()
     request = f'{zoom_url}/{x_value}/{y_value}'
-    print(request)
-    #res = requests.post(url=request, files={'file':open(thumbnail_path, 'rb')})
-    #print(f'The post request {request} has returned the status {res.status_code} in {time.time()-t0:.2f} seconds')
-    return 0
+    res = requests.post(url=request, files={'file':open(thumbnail_path, 'rb')})
+    if verbose:
+        print(f'The post request {request} has returned the status {res.status_code} in {time.time()-t0:.2f} seconds')
 
 def process_zoom_level(city_path:pathlib.Path, zoom_level:int, city_url:str):
     zoomed_folder = city_path.joinpath(f'{zoom_level}')

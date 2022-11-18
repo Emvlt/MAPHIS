@@ -3,12 +3,11 @@ from models import SegmentationModel
 import sys
 import json
 sys.path.append('..')
-from utils import constants
+import utils.constants as constants
 
 parameters = json.load(open(str(constants.MODELSPATH.joinpath('default_model_parameters.json'))))['segmentation']
 
-
-model = SegmentationModel(parameters, 3, 1+len(constants.HIGHLEVELFEATURES))
+model = SegmentationModel(parameters, 3, 1+len(constants.FEATURENAMES))
 
 saved_model_path = constants.MODELSPATH.joinpath(f'saves/segmentation_real_state_dict.pth')
 
