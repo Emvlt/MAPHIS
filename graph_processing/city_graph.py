@@ -16,7 +16,7 @@ from sympy import ordered
 
 sys.path.append('..')
 import utils.constants as constants
-import utils.upload_utils as upload_utils
+import upload_utils
 import city_node, pathfinding
 
 
@@ -334,173 +334,174 @@ class Graph():
         self.max_zoom_level = i
         # We then iterate over zoom levels
         zoom_depth = 0
-        while zoom_depth < max_zoom_depth:
+        while 4 < self.max_zoom_level-zoom_depth-8:
             current_zoom_level = self.max_zoom_level-zoom_depth-8
-            print(f'Processing zoom level {current_zoom_level}')
-            save_path_zoom = save_path.joinpath(f'{current_zoom_level}')
-            input_tile_size = 2**(8+zoom_depth)
-            thumbnails_per_tile_height = self.tile_h // input_tile_size + 1
-            thumbnails_per_tile_width  = self.tile_w // input_tile_size + 1
-            mesh_h = thumbnails_per_tile_height*input_tile_size
-            mesh_w = thumbnails_per_tile_width*input_tile_size
-            dh = mesh_h-self.tile_h
-            dw = mesh_w-self.tile_w
+            if 4<=current_zoom_level<8:
+                print(f'Processing zoom level {current_zoom_level}')
+                save_path_zoom = save_path.joinpath(f'{current_zoom_level}')
+                input_tile_size = 2**(8+zoom_depth)
+                thumbnails_per_tile_height = self.tile_h // input_tile_size + 1
+                thumbnails_per_tile_width  = self.tile_w // input_tile_size + 1
+                mesh_h = thumbnails_per_tile_height*input_tile_size
+                mesh_w = thumbnails_per_tile_width*input_tile_size
+                dh = mesh_h-self.tile_h
+                dw = mesh_w-self.tile_w
 
-            tile_h_index = 0
-            start_h = 0
-            while tile_h_index < self.n_tile_longitude:
-                mesh_h_index_offset = tile_h_index * thumbnails_per_tile_height
-                h_offset = self.tile_h-start_h
-                h_condition = mesh_h-h_offset < self.tile_h
-                if h_condition:
-                    ### ALLOCATING END INDICES FOR TILES
-                    end_h_j = mesh_h-h_offset
-                    ### ASSERTING THAT ALL THE MESH IS ALLOCATED
-                    assert h_offset + end_h_j == mesh_h
-                    ### w index iteration
-                    tile_w_index = 0
-                    start_w = 0
-                    while tile_w_index < self.n_tile_lattitude:
-                        mesh_w_index_offset = tile_w_index * thumbnails_per_tile_width
-                        t0 = time.time()
-                        w_offset = self.tile_w-start_w
-                        w_condition = mesh_w-w_offset <  self.tile_w
-                        if w_condition:
-                            end_w_j = mesh_w-w_offset
-                            assert w_offset + end_w_j == mesh_w
-                            mesh = np.ones((mesh_w, mesh_h), np.uint8)*255
-                            ##  +-----------------+---------+
-                            ##  |                 |         |
-                            ##  |      i,j        |  i+1,j  |
-                            ##  |                 |         |
-                            ##  +-----------------+---------+
-                            ##  |      i, j+1     | i+1,j+1 |
-                            ##  +-----------------+---------+
-                            # (i,j)
-                            mesh = self.allocate_tile(mesh,   tile_w_index,   tile_h_index, start_w, self.tile_w, start_h, self.tile_h,        0, w_offset, 0, h_offset)
-                            # (i+1,j)
-                            mesh = self.allocate_tile(mesh, tile_w_index+1,   tile_h_index,       0,     end_w_j, start_h, self.tile_h, w_offset,   mesh_w, 0, h_offset)
-                            # (i,j+1)
-                            mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+1, start_w, self.tile_w,       0,     end_h_j,        0, w_offset, h_offset, mesh_h)
-                            # (i+1,j+1)
-                            mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+1,       0,     end_w_j,       0,     end_h_j, w_offset,   mesh_w, h_offset, mesh_h)
-                            start_w  += dw
-                        else:
-                            end_w_j = self.tile_w
-                            end_w_k = mesh_w-w_offset-self.tile_w
-                            assert w_offset + end_w_j + end_w_k == mesh_w
-                            ##  +-------+---------+---------+
-                            ##  |       |         |         |
-                            ##  | i,j   |  i+1,j  | i+2,j   |
-                            ##  |       |         |         |
-                            ##  +-------+---------+---------+
-                            ##  | i,j+1 | i+1,j+1 | i+2,j+1 |
-                            ##  +-------+---------+---------+
-                            # (i,j)
-                            mesh = self.allocate_tile(mesh,   tile_w_index,   tile_h_index, start_w, self.tile_w, start_h, self.tile_h,                0,         w_offset, 0, h_offset)
-                            # (i+1,j)
-                            mesh = self.allocate_tile(mesh, tile_w_index+1,   tile_h_index,       0,     end_w_j, start_h, self.tile_h, w_offset        , w_offset+end_w_j, 0, h_offset)
-                            # (i+2,j)
-                            mesh = self.allocate_tile(mesh, tile_w_index+2,   tile_h_index,       0,     end_w_k, start_h, self.tile_h, w_offset+end_w_j,           mesh_w, 0, h_offset)
-                            # (i,j+1)
-                            mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+1, start_w, self.tile_w,       0,     end_h_j,                0,         w_offset, h_offset, mesh_h)
-                            # (i+1,j+1)
-                            mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+1,       0,     end_w_j,       0,     end_h_j, w_offset        , w_offset+end_w_j, h_offset, mesh_h)
-                            # (i+2,j+1)
-                            mesh = self.allocate_tile(mesh, tile_w_index+2, tile_h_index+1,       0,     end_w_k,       0,     end_h_j, w_offset+end_w_j,           mesh_w, h_offset, mesh_h)
-                            ### Index allocation
-                            tile_w_index += 1
-                            start_w = dw-w_offset
-                        self.save_mesh(save_path_zoom, mesh, input_tile_size, tile_h_index, tile_w_index, thumbnails_per_tile_width, thumbnails_per_tile_height, mesh_h_index_offset, mesh_w_index_offset)
-                        print(f'Time from allocating mesh memory to upload all thumbnails:{time.time()-t0}')
-                        tile_w_index +=1
-                    ### INCREMENTING INDICES
-                    start_h  += dh
+                tile_h_index = 0
+                start_h = 0
+                while tile_h_index < self.n_tile_longitude:
+                    mesh_h_index_offset = tile_h_index * thumbnails_per_tile_height
+                    h_offset = self.tile_h-start_h
+                    h_condition = mesh_h-h_offset < self.tile_h
+                    if h_condition:
+                        ### ALLOCATING END INDICES FOR TILES
+                        end_h_j = mesh_h-h_offset
+                        ### ASSERTING THAT ALL THE MESH IS ALLOCATED
+                        assert h_offset + end_h_j == mesh_h
+                        ### w index iteration
+                        tile_w_index = 0
+                        start_w = 0
+                        while tile_w_index < self.n_tile_lattitude:
+                            mesh_w_index_offset = tile_w_index * thumbnails_per_tile_width
+                            t0 = time.time()
+                            w_offset = self.tile_w-start_w
+                            w_condition = mesh_w-w_offset <  self.tile_w
+                            if w_condition:
+                                end_w_j = mesh_w-w_offset
+                                assert w_offset + end_w_j == mesh_w
+                                mesh = np.ones((mesh_w, mesh_h), np.uint8)*255
+                                ##  +-----------------+---------+
+                                ##  |                 |         |
+                                ##  |      i,j        |  i+1,j  |
+                                ##  |                 |         |
+                                ##  +-----------------+---------+
+                                ##  |      i, j+1     | i+1,j+1 |
+                                ##  +-----------------+---------+
+                                # (i,j)
+                                mesh = self.allocate_tile(mesh,   tile_w_index,   tile_h_index, start_w, self.tile_w, start_h, self.tile_h,        0, w_offset, 0, h_offset)
+                                # (i+1,j)
+                                mesh = self.allocate_tile(mesh, tile_w_index+1,   tile_h_index,       0,     end_w_j, start_h, self.tile_h, w_offset,   mesh_w, 0, h_offset)
+                                # (i,j+1)
+                                mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+1, start_w, self.tile_w,       0,     end_h_j,        0, w_offset, h_offset, mesh_h)
+                                # (i+1,j+1)
+                                mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+1,       0,     end_w_j,       0,     end_h_j, w_offset,   mesh_w, h_offset, mesh_h)
+                                start_w  += dw
+                            else:
+                                end_w_j = self.tile_w
+                                end_w_k = mesh_w-w_offset-self.tile_w
+                                assert w_offset + end_w_j + end_w_k == mesh_w
+                                ##  +-------+---------+---------+
+                                ##  |       |         |         |
+                                ##  | i,j   |  i+1,j  | i+2,j   |
+                                ##  |       |         |         |
+                                ##  +-------+---------+---------+
+                                ##  | i,j+1 | i+1,j+1 | i+2,j+1 |
+                                ##  +-------+---------+---------+
+                                # (i,j)
+                                mesh = self.allocate_tile(mesh,   tile_w_index,   tile_h_index, start_w, self.tile_w, start_h, self.tile_h,                0,         w_offset, 0, h_offset)
+                                # (i+1,j)
+                                mesh = self.allocate_tile(mesh, tile_w_index+1,   tile_h_index,       0,     end_w_j, start_h, self.tile_h, w_offset        , w_offset+end_w_j, 0, h_offset)
+                                # (i+2,j)
+                                mesh = self.allocate_tile(mesh, tile_w_index+2,   tile_h_index,       0,     end_w_k, start_h, self.tile_h, w_offset+end_w_j,           mesh_w, 0, h_offset)
+                                # (i,j+1)
+                                mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+1, start_w, self.tile_w,       0,     end_h_j,                0,         w_offset, h_offset, mesh_h)
+                                # (i+1,j+1)
+                                mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+1,       0,     end_w_j,       0,     end_h_j, w_offset        , w_offset+end_w_j, h_offset, mesh_h)
+                                # (i+2,j+1)
+                                mesh = self.allocate_tile(mesh, tile_w_index+2, tile_h_index+1,       0,     end_w_k,       0,     end_h_j, w_offset+end_w_j,           mesh_w, h_offset, mesh_h)
+                                ### Index allocation
+                                tile_w_index += 1
+                                start_w = dw-w_offset
+                            self.save_mesh(save_path_zoom, mesh, input_tile_size, tile_h_index, tile_w_index, thumbnails_per_tile_width, thumbnails_per_tile_height, mesh_h_index_offset, mesh_w_index_offset)
+                            print(f'Time from allocating mesh memory to upload all thumbnails:{time.time()-t0}')
+                            tile_w_index +=1
+                        ### INCREMENTING INDICES
+                        start_h  += dh
 
-                else:
-                    ### ALLOCATING END INDICES FOR TILES
-                    end_h_j = self.tile_h
-                    end_h_k = mesh_h-h_offset-self.tile_h
-                    ### ASSERTING THAT ALL THE MESH IS ALLOCATED
-                    assert h_offset + end_h_j + end_h_k == mesh_h
-                    ### w index iteration
-                    tile_w_index = 0
-                    start_w = 0
-                    while tile_w_index < self.n_tile_lattitude:
-                        mesh_w_index_offset = tile_w_index * thumbnails_per_tile_width
-                        t0 = time.time()
-                        w_offset = self.tile_w-start_w
-                        w_condition = mesh_w-w_offset <  self.tile_w
-                        if w_condition:
-                            end_w_j = mesh_w-w_offset
-                            assert w_offset + end_w_j == mesh_w
-                            mesh = np.ones((mesh_w, mesh_h), np.uint8)*255
-                            ##  +-----------------+---------+
-                            ##  |   i,j           |  i+1,j  |
-                            ##  +-----------------+---------+
-                            ##  |                 |         |
-                            ##  |   i,j+1         | i+1,j+1 |
-                            ##  |                 |         |
-                            ##  +-----------------+---------+
-                            ##  |   i,j+2         | i+1,j+2 |
-                            ##  +-----------------+---------+
-                            # (i,j)
-                            mesh = self.allocate_tile(mesh,   tile_w_index,   tile_h_index, start_w, self.tile_w, start_h, self.tile_h,        0, w_offset,        0, h_offset)
-                            # (i+1,j)
-                            mesh = self.allocate_tile(mesh, tile_w_index+1,   tile_h_index,       0,     end_w_j, start_h, self.tile_h, w_offset,   mesh_w,        0, h_offset)
-                            # (i,j+1)
-                            mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+1, start_w, self.tile_w,       0,     end_h_j,        0, w_offset, h_offset, h_offset+end_h_j)
-                            # (i+1,j+1)
-                            mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+1,       0,     end_w_j,       0,     end_h_j, w_offset,   mesh_w, h_offset, h_offset+end_h_j)
-                            # (i,j+2)
-                            mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+2, start_w, self.tile_w,       0,     end_h_k,        0, w_offset, h_offset+end_h_j, mesh_h)
-                            # (i+1,j+2)
-                            mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+2,       0,     end_w_j,       0,     end_h_k, w_offset,   mesh_w, h_offset+end_h_j, mesh_h)
-                            start_w  += dw
-                        else:
-                            end_w_j = self.tile_w
-                            end_w_k = mesh_w-w_offset-self.tile_w
-                            assert w_offset + end_w_j + end_w_k == mesh_w
-                            ##  +-------+---------+---------+
-                            ##  | i,j   | i+1,j   |  i+2,j  |
-                            ##  +-------+---------+---------+
-                            ##  |       |         |         |
-                            ##  | i,j+1 | i+1,j+1 | i+2,j+1 |
-                            ##  |       |         |         |
-                            ##  +-------+---------+---------+
-                            ##  | i,j+2 | i+1,j+2 | i+2,j+2 |
-                            ##  +-------+---------+---------+
-                            # (i,    j)
-                            mesh = self.allocate_tile(mesh,   tile_w_index,   tile_h_index, start_w, self.tile_w, start_h, self.tile_h,                0,         w_offset, 0, h_offset)
-                            # (i+1,  j)
-                            mesh = self.allocate_tile(mesh, tile_w_index+1,   tile_h_index,       0,     end_w_j, start_h, self.tile_h, w_offset        , w_offset+end_w_j, 0, h_offset)
-                            # (i+2,  j)
-                            mesh = self.allocate_tile(mesh, tile_w_index+2,   tile_h_index,       0,     end_w_k, start_h, self.tile_h, w_offset+end_w_j,           mesh_w, 0, h_offset)
-                            # (i,  j+1)
-                            mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+1, start_w, self.tile_w,       0,     end_h_j,                0,         w_offset, h_offset, h_offset+end_h_j)
-                            # (i+1,j+1)
-                            mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+1,       0,     end_w_j,       0,     end_h_j, w_offset        , w_offset+end_w_j, h_offset, h_offset+end_h_j)
-                            # (i+2,j+1)
-                            mesh = self.allocate_tile(mesh, tile_w_index+2, tile_h_index+1,       0,     end_w_k,       0,     end_h_j, w_offset+end_w_j,           mesh_w, h_offset, h_offset+end_h_j)
-                            # (i,  j+2)
-                            mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+2, start_w, self.tile_w,       0,     end_h_k,                0,         w_offset, h_offset+end_h_j, mesh_h)
-                            # (i+1,j+2)
-                            mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+2,       0,     end_w_j,       0,     end_h_k, w_offset        , w_offset+end_w_j, h_offset+end_h_j, mesh_h)
-                            # (i+2,j+2)
-                            mesh = self.allocate_tile(mesh, tile_w_index+2, tile_h_index+2,       0,     end_w_k,       0,     end_h_k, w_offset+end_w_j,           mesh_w, h_offset+end_h_j, mesh_h)
-                            ### Index allocation
-                            tile_w_index += 1
-                            start_w = dw-w_offset
-                        self.save_mesh(save_path_zoom, mesh, input_tile_size, tile_h_index, tile_w_index, thumbnails_per_tile_width, thumbnails_per_tile_height, mesh_h_index_offset, mesh_w_index_offset)
-                        print(f'Time from allocating mesh memory to upload all thumbnails:{time.time()-t0}')
-                        tile_w_index +=1
-                    ### INCREMENTING INDICES
+                    else:
+                        ### ALLOCATING END INDICES FOR TILES
+                        end_h_j = self.tile_h
+                        end_h_k = mesh_h-h_offset-self.tile_h
+                        ### ASSERTING THAT ALL THE MESH IS ALLOCATED
+                        assert h_offset + end_h_j + end_h_k == mesh_h
+                        ### w index iteration
+                        tile_w_index = 0
+                        start_w = 0
+                        while tile_w_index < self.n_tile_lattitude:
+                            mesh_w_index_offset = tile_w_index * thumbnails_per_tile_width
+                            t0 = time.time()
+                            w_offset = self.tile_w-start_w
+                            w_condition = mesh_w-w_offset <  self.tile_w
+                            if w_condition:
+                                end_w_j = mesh_w-w_offset
+                                assert w_offset + end_w_j == mesh_w
+                                mesh = np.ones((mesh_w, mesh_h), np.uint8)*255
+                                ##  +-----------------+---------+
+                                ##  |   i,j           |  i+1,j  |
+                                ##  +-----------------+---------+
+                                ##  |                 |         |
+                                ##  |   i,j+1         | i+1,j+1 |
+                                ##  |                 |         |
+                                ##  +-----------------+---------+
+                                ##  |   i,j+2         | i+1,j+2 |
+                                ##  +-----------------+---------+
+                                # (i,j)
+                                mesh = self.allocate_tile(mesh,   tile_w_index,   tile_h_index, start_w, self.tile_w, start_h, self.tile_h,        0, w_offset,        0, h_offset)
+                                # (i+1,j)
+                                mesh = self.allocate_tile(mesh, tile_w_index+1,   tile_h_index,       0,     end_w_j, start_h, self.tile_h, w_offset,   mesh_w,        0, h_offset)
+                                # (i,j+1)
+                                mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+1, start_w, self.tile_w,       0,     end_h_j,        0, w_offset, h_offset, h_offset+end_h_j)
+                                # (i+1,j+1)
+                                mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+1,       0,     end_w_j,       0,     end_h_j, w_offset,   mesh_w, h_offset, h_offset+end_h_j)
+                                # (i,j+2)
+                                mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+2, start_w, self.tile_w,       0,     end_h_k,        0, w_offset, h_offset+end_h_j, mesh_h)
+                                # (i+1,j+2)
+                                mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+2,       0,     end_w_j,       0,     end_h_k, w_offset,   mesh_w, h_offset+end_h_j, mesh_h)
+                                start_w  += dw
+                            else:
+                                end_w_j = self.tile_w
+                                end_w_k = mesh_w-w_offset-self.tile_w
+                                assert w_offset + end_w_j + end_w_k == mesh_w
+                                ##  +-------+---------+---------+
+                                ##  | i,j   | i+1,j   |  i+2,j  |
+                                ##  +-------+---------+---------+
+                                ##  |       |         |         |
+                                ##  | i,j+1 | i+1,j+1 | i+2,j+1 |
+                                ##  |       |         |         |
+                                ##  +-------+---------+---------+
+                                ##  | i,j+2 | i+1,j+2 | i+2,j+2 |
+                                ##  +-------+---------+---------+
+                                # (i,    j)
+                                mesh = self.allocate_tile(mesh,   tile_w_index,   tile_h_index, start_w, self.tile_w, start_h, self.tile_h,                0,         w_offset, 0, h_offset)
+                                # (i+1,  j)
+                                mesh = self.allocate_tile(mesh, tile_w_index+1,   tile_h_index,       0,     end_w_j, start_h, self.tile_h, w_offset        , w_offset+end_w_j, 0, h_offset)
+                                # (i+2,  j)
+                                mesh = self.allocate_tile(mesh, tile_w_index+2,   tile_h_index,       0,     end_w_k, start_h, self.tile_h, w_offset+end_w_j,           mesh_w, 0, h_offset)
+                                # (i,  j+1)
+                                mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+1, start_w, self.tile_w,       0,     end_h_j,                0,         w_offset, h_offset, h_offset+end_h_j)
+                                # (i+1,j+1)
+                                mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+1,       0,     end_w_j,       0,     end_h_j, w_offset        , w_offset+end_w_j, h_offset, h_offset+end_h_j)
+                                # (i+2,j+1)
+                                mesh = self.allocate_tile(mesh, tile_w_index+2, tile_h_index+1,       0,     end_w_k,       0,     end_h_j, w_offset+end_w_j,           mesh_w, h_offset, h_offset+end_h_j)
+                                # (i,  j+2)
+                                mesh = self.allocate_tile(mesh,   tile_w_index, tile_h_index+2, start_w, self.tile_w,       0,     end_h_k,                0,         w_offset, h_offset+end_h_j, mesh_h)
+                                # (i+1,j+2)
+                                mesh = self.allocate_tile(mesh, tile_w_index+1, tile_h_index+2,       0,     end_w_j,       0,     end_h_k, w_offset        , w_offset+end_w_j, h_offset+end_h_j, mesh_h)
+                                # (i+2,j+2)
+                                mesh = self.allocate_tile(mesh, tile_w_index+2, tile_h_index+2,       0,     end_w_k,       0,     end_h_k, w_offset+end_w_j,           mesh_w, h_offset+end_h_j, mesh_h)
+                                ### Index allocation
+                                tile_w_index += 1
+                                start_w = dw-w_offset
+                            self.save_mesh(save_path_zoom, mesh, input_tile_size, tile_h_index, tile_w_index, thumbnails_per_tile_width, thumbnails_per_tile_height, mesh_h_index_offset, mesh_w_index_offset)
+                            print(f'Time from allocating mesh memory to upload all thumbnails:{time.time()-t0}')
+                            tile_w_index +=1
+                        ### INCREMENTING INDICES
+                        tile_h_index += 1
+                        start_h = dh-h_offset
+
+
+
                     tile_h_index += 1
-                    start_h = dh-h_offset
-
-
-
-                tile_h_index += 1
 
             zoom_depth += 1
 

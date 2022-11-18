@@ -156,8 +156,13 @@ cython_debug/
 MAPHISSandbox.pem
 
 feature_detection/misc.py
+<<<<<<< HEAD
 feature_detection/validation.py
 
 graph_processing/upload_utils.py
 
 models_folder/check_saved_model.py
+=======
+
+graph_processing/upload_utils.py
+>>>>>>> bf9610a9e16b4ee4f6b70eaa64c3b57e261156a5
