@@ -1,8 +1,8 @@
 """Definition of the morphological tools in one place"""
 
-from typing import List, Tuple
+from typing import List, Tuple, Any
 import pathlib
-
+import json
 import cv2
 import numpy as np
 from tqdm import tqdm
@@ -42,8 +42,13 @@ def blend(image_a, image_b, weight)->np.ndarray:
     background = cv2.addWeighted(image_a, weight, image_b, 1-weight, 0.0)
     return background
 
-def unpad_tile(mat:np.ndarray)->np.ndarray:
-    return mat[:,constants.WIDTHPADDING:constants.WIDTHPADDING+constants.TILEWIDTH, constants.HEIGHTPADDING:constants.HEIGHTPADDING+constants.TILEHEIGHT]
+def unpad_tile(mat:np.ndarray, city_name:str)->np.ndarray:
+    tile_shape = get_tile_shape(city_name)
+    height_padding = constants.TILEDICT[tile_shape]['height_padding']
+    width_padding = constants.TILEDICT[tile_shape]['width_padding']
+    tile_height = constants.TILEDICT[tile_shape]['height']
+    tile_width  = constants.TILEDICT[tile_shape]['width']
+    return mat[:,width_padding:width_padding+tile_width,height_padding:height_padding+tile_height]
 
 def tile_scale(mat:np.ndarray, scaling_matrix_path:str) ->np.ndarray:
     return mat/np.load(scaling_matrix_path)
@@ -56,16 +61,25 @@ def extract_contours(mat:np.ndarray) -> List:
     contours = grab_contours(contours)
     return contours
 
-def empty_tile(val=None):
-    return np.zeros( (constants.TILEHEIGHT, constants.TILEWIDTH), np.uint8) if val is None else np.ones( (constants.TILEHEIGHT, constants.TILEWIDTH), np.uint8)*val
+def get_tile_shape(city_name:str):
+    tile_shape = json.load(open(constants.TILESDATAPATH.joinpath('cities_tile_shapes.json')))[city_name]
+    return tile_shape
 
-def load_high_level_feature(city_name, tile_name, high_level_feature_name):
-    target = empty_tile()
-    for feature_name in constants.HIGHLEVELFEATURES[high_level_feature_name]:
-        path = constants.RAWPATH / f'{city_name}/{tile_name}/{feature_name}{constants.FILEEXTENSION}'
-        if path.is_file():
-            target = cv2.bitwise_or(target, np.uint8(open_and_binarise(str(path), 'grayscale', feature_name)))
-    return target
+def get_tile_size(city_name:str):
+    [tile_width, tile_height] = json.load(open(constants.TILESDATAPATH.joinpath('cities_tile_sizes.json')))[city_name]
+    return tile_width, tile_height
+
+def empty_tile(city_name, val=None):
+    tile_width, tile_height = get_tile_size(city_name)
+    return np.zeros( (tile_height, tile_width), np.uint8) if val is None else np.ones( (constants.TILEHEIGHT, constants.TILEWIDTH), np.uint8)*val
+
+def opening(mat:np.ndarray, ks = 5):
+    element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ks,ks))
+    return cv2.morphologyEx(mat, cv2.MORPH_OPEN, element)
+
+def closing(mat:np.ndarray, ks = 3):
+    element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ks,ks))
+    return cv2.morphologyEx(mat, cv2.MORPH_CLOSE, element)
 
 def is_false_positive(contour:List) -> Tuple[float, bool]:
     area = cv2.contourArea(contour)
@@ -81,7 +95,7 @@ def histo(array, bins=None)->np.ndarray:
 def compute_tile_histogram(file_path:pathlib.Path, feature_name:str, areas:list, heights:list, widths:list):
     print(f'Processing feature {feature_name} on tile {file_path.parent}/{file_path.stem}')
     if file_path.is_file():
-        mat = np.uint8(open_and_binarise(str(file_path), 'grayscale', feature_name))
+        mat:np.ndarray[Any, Any] = np.uint8(open_and_binarise(str(file_path), 'grayscale', feature_name))
         contours = extract_contours(mat)
         for contour in tqdm(contours):
             area, false_positive = is_false_positive(contour)
@@ -91,6 +105,27 @@ def compute_tile_histogram(file_path:pathlib.Path, feature_name:str, areas:list,
                 heights.append(height)
                 widths.append(width)
     return areas, heights, widths
+
+
+
+### EXPERIMENTAL
+def load_high_level_feature(city_name, tile_name, high_level_feature_name):
+    target = empty_tile()
+    for feature_name in constants.HIGHLEVELFEATURES[high_level_feature_name]:
+        path = constants.RAWPATH / f'{city_name}/{tile_name}/{feature_name}{constants.FILEEXTENSION}'
+        if path.is_file():
+            target = cv2.bitwise_or(target, np.uint8(open_and_binarise(str(path), 'grayscale', feature_name)))
+    return target
+
+
+
+def load_background(city_name, tile_name):
+    target = empty_tile()
+    for background_element in constants.BACKGROUNDKWDS:
+        path = constants.RAWPATH / f'{city_name}/{tile_name}/{background_element}{constants.FILEEXTENSION}'
+        if path.is_file():
+            target = cv2.bitwise_or(target, np.uint8(open_and_binarise(str(path), 'grayscale', background_element)))
+    return target
 
 def compute_shape_histogram(test_folders_paths:List[pathlib.Path], feature_name:str, to_save:bool):
     # feature_name is now text, imprints, trees
@@ -138,12 +173,3 @@ def compute_shape_histogram(test_folders_paths:List[pathlib.Path], feature_name:
         histogram_dict['W_distribution']['histogram'] = width_histo
         histogram_dict['W_distribution']['bins'] = width_bins
     return histogram_dict
-
-### EXPERIMENTAL
-def load_background(city_name, tile_name):
-    target = empty_tile()
-    for background_element in constants.BACKGROUNDKWDS:
-        path = constants.RAWPATH / f'{city_name}/{tile_name}/{background_element}{constants.FILEEXTENSION}'
-        if path.is_file():
-            target = cv2.bitwise_or(target, np.uint8(open_and_binarise(str(path), 'grayscale', background_element)))
-    return target
